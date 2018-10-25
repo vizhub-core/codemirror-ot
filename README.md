@@ -1,2 +1,2 @@
 # codemirror-ot
-Operational Transformation adapter for CodeMirror 6
+[Operational Transformation](https://github.com/ottypes/json0) adapter for CodeMirror 6.
