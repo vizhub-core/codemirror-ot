@@ -1,7 +1,10 @@
 import assert from 'assert';
-import { transactionToOps } from './index.js';
+import {
+  transactionToOps,
+  opsToTransaction
+} from './index.js';
 
-describe('CodeMirror OT', () => {
+describe('codemirror-ot', () => {
   it('should insert a single character', () => {
     const path = ['text'];
     const transaction = {
@@ -16,10 +19,17 @@ describe('CodeMirror OT', () => {
         ]
       }
     };
-    const ops = transactionToOps(path, transaction);
-    assert.deepEqual(ops, [{
+    const ops = [{
       p: [ path, 0 ],
       si: 'd'
-    }]);
+    }];
+    assert.deepEqual(
+      transactionToOps(path, transaction),
+      ops
+    ); 
+    assert.deepEqual(
+      opsToTransaction(path, ops),
+      transaction
+    ); 
   });
 });
