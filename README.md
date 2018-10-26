@@ -6,5 +6,6 @@ This is one piece of the puzzle for enabling real-time collaboration on text doc
 Related work:
 
  * https://github.com/FirebaseExtended/firepad - An active project using Firebase and CodeMirror.
+ * https://github.com/gkjohnson/collaborative-code-editor - A 2017 integration of ShareDB and CodeMirror.
  * https://github.com/ejones/sharedb-codemirror - A ShareDB + CodeMirror integration from 2016.
  * https://github.com/nickasd/sharedb-codemirror - A fork of the `ejones` project from 2017.
