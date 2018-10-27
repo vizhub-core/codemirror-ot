@@ -94,4 +94,17 @@ describe('codemirror-ot', () => {
       });
     });
   });
+  describe('string delete and insert (replacement)', () => {
+    describe('single character delete mid-string', () => {
+      verify({
+        before: 'Hello World',
+        after: 'Hello-World',
+        txn: transaction => transaction.change(new Change(5, 6, ['-'])),
+        ops: [
+          {'p': [5], 'sd':' '},
+          {'p': [5], 'si':'-'}
+        ]
+      });
+    });
+  });
 });
