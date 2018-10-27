@@ -95,7 +95,7 @@ describe('codemirror-ot', () => {
     });
   });
   describe('string delete and insert (replacement)', () => {
-    describe('single character delete mid-string', () => {
+    describe('single character replacement mid-string', () => {
       verify({
         before: 'Hello World',
         after: 'Hello-World',
