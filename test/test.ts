@@ -12,10 +12,15 @@ const withoutTimestamp = (transaction: Transaction) => {
 };
 
 describe('codemirror-ot', () => {
-  const path: Path = ['text'];
-  let state = EditorState.create({ doc: 'hello' });
+  const path: Path = [];
 
   describe('single character insertion', () => {
+
+    let textBefore = '';
+    let textAfter = 'd';
+
+    const state = EditorState.create({ doc: textBefore });
+
     const transaction = state.transaction.change(new Change(0, 0, ['d']));
     const ops = [{ p: path.concat([0]), si: 'd' }];
 
@@ -30,10 +35,12 @@ describe('codemirror-ot', () => {
       ); 
     });
 
-    it('applied ops and transaction should match', () => {
-      assert.deepEqual('abc', json0.apply('a', [ { p: [1], si: 'bc' } ])); 
-      assert.deepEqual('bc', json0.apply('abc', [ { p: [0], sd: 'a' } ]));
-      assert.deepEqual({ x: 'abc' }, json0.apply({ x: 'a' }, [ { p: ['x', 1], si: 'bc' } ]));
+    it('applied ops should match expected text', () => {
+      assert.deepEqual(textAfter, json0.apply('', ops));
+    });
+
+    it('applied transaction should match expected text', () => {
+      assert.deepEqual(textAfter, transaction.doc.toString());
     });
 
   });
