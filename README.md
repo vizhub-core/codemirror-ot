@@ -1,7 +1,9 @@
 # codemirror-ot
 Real-time collaboration plugin for CodeMirror 6.
 
-At its core this library is a translator between [JSON Operational Transformation](https://github.com/ottypes/json0) and [CodeMirror 6](https://codemirror.net/6/) transactions. This is one piece of the puzzle for enabling real-time collaboration on text documents using [ShareDB](https://github.com/teamwork/sharedb).
+At its core this library is a translator between [JSON Operational Transformation](https://github.com/ottypes/json0) and [CodeMirror 6](https://codemirror.net/6/) transactions.
+
+This is one piece of the puzzle for enabling real-time collaboration on text documents using [ShareDB](https://github.com/teamwork/sharedb).
 
 Related work:
 
