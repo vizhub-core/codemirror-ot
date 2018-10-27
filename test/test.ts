@@ -43,22 +43,22 @@ const verify = ({ before, after, txn, ops }) => {
 };
 
 describe('codemirror-ot', () => {
-  describe('single character insertion from position 0', () => {
-    verify({
-      before: '',
-      after:'d',
-      txn: transaction => transaction.change(new Change(0, 0, ['d'])),
-      ops: [{ p: [0], si: 'd' }]
-    });
-  });
-  describe('single character insertion mid-string', () => {
-    verify({
-      before: 'HelloWorld',
-      after: 'Hello World',
-      txn: transaction => transaction.change(new Change(5, 5, [' '])),
-      ops: [{ p: [5], si: ' ' }]
-    });
-  });
+  //describe('single character insertion from position 0', () => {
+  //  verify({
+  //    before: '',
+  //    after:'d',
+  //    txn: transaction => transaction.change(new Change(0, 0, ['d'])),
+  //    ops: [{ p: [0], si: 'd' }]
+  //  });
+  //});
+  //describe('single character insertion mid-string', () => {
+  //  verify({
+  //    before: 'HelloWorld',
+  //    after: 'Hello World',
+  //    txn: transaction => transaction.change(new Change(5, 5, [' '])),
+  //    ops: [{ p: [5], si: ' ' }]
+  //  });
+  //});
   describe('single character deletion mid-string', () => {
     verify({
       before: 'Hello World',
