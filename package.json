@@ -2,9 +2,10 @@
   "name": "codemirror-ot",
   "version": "1.0.0",
   "description": "Operational Transformation adapter for CodeMirror 6.",
-  "main": "index.js",
+  "main": "./dist/codemirror-ot.js",
   "scripts": {
-    "test": "mocha -r esm"
+    "build": "rollup -c rollup.config.js",
+    "test": "mocha -r ts-node/register test/*"
   },
   "repository": {
     "type": "git",
@@ -22,8 +23,17 @@
     "url": "https://github.com/datavis-tech/codemirror-ot/issues"
   },
   "homepage": "https://github.com/datavis-tech/codemirror-ot#readme",
+  "dependencies": {
+    "codemirror-6": "1"
+  },
   "devDependencies": {
-    "esm": "^3.0.84",
-    "mocha": "^5.2.0"
+    "@types/mocha": "^5.2.5",
+    "mocha": "^5.2.0",
+    "rollup": "^0.66.6",
+    "rollup-plugin-commonjs": "^9.2.0",
+    "rollup-plugin-node-resolve": "^3.4.0",
+    "rollup-plugin-typescript2": "^0.17.2",
+    "ts-node": "^7.0.1",
+    "typescript": "^3.1.3"
   }
 }

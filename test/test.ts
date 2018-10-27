@@ -1,8 +1,5 @@
-import assert from 'assert';
-import {
-  transactionToOps,
-  opsToTransaction
-} from './index.js';
+import * as assert from 'assert';
+import { transactionToOps, opsToTransaction } from '../src/index';
 
 describe('codemirror-ot', () => {
   it('should insert a single character', () => {
