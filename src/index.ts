@@ -3,9 +3,10 @@ import { Change, Transaction, EditorState } from 'codemirror-6';
 export type Path = (number | string)[];
 
 interface Op { p: Path }
-interface StringInsert extends Op { si: string }
-interface StringDelete extends Op { sd: string }
-type StringOp = StringInsert | StringDelete;
+interface StringOp extends Op {
+  si?: string;
+  sd?: string;
+}
 
 // String insert.
 // const changeToOp = (path: Path) => (change: Change): StringOp => ({
@@ -24,16 +25,23 @@ export const transactionToOps = (path: Path, transaction: Transaction) => {
 };
 
 const opToChange = (transaction: Transaction, op: Op) => {
-  const stringDelete = op as StringDelete;
-  const from = stringDelete.p[op.p.length - 1] as number;
-  const to = from + stringDelete.sd.length;
-  const str = '';
-  return transaction.change(new Change(from, to, [str]));
+  const stringOp = op as StringOp;
+  const from = stringOp.p[op.p.length - 1] as number;
 
-  //const stringInsert = op as StringInsert;
-  //const from = stringInsert.p[op.p.length - 1] as number;
-  //const str = stringInsert.si;
-  //return transaction.change(new Change(from, from, [str]));
+  // String insert
+  if (stringOp.si !== undefined) {
+    const str = stringOp.si;
+    return transaction.change(new Change(from, from, [str]));
+  }
+
+  // String delete
+  if (stringOp.sd !== undefined) {
+    const to = from + stringOp.sd.length;
+    const str = '';
+    return transaction.change(new Change(from, to, [str]));
+  }
+
+  throw new Error('Invalid string op.');
 }
 
 export const opsToTransaction = (path: Path, state: EditorState, ops: Op[]) =>
