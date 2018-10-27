@@ -28,7 +28,11 @@ const verify = ({ textBefore, textAfter, txn, ops }) => {
   });
 
   it('applied ops should match expected text', () => {
-    assert.deepEqual(textAfter, json0.apply('', ops));
+    assert.deepEqual(textAfter, json0.apply(textBefore, ops));
+  });
+
+  it('inverted applied ops should match expected text', () => {
+    assert.deepEqual(textBefore, json0.apply(textAfter, json0.invert(ops)));
   });
 
   it('applied transaction should match expected text', () => {
