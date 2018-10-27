@@ -2,23 +2,23 @@ import { Change, Transaction, EditorState } from 'codemirror-6';
 
 export type Path = (number | string)[];
 
-interface Op { p: Path }
+interface Op {
+  p: Path
+}
 interface StringOp extends Op {
-  si?: string;
-  sd?: string;
+  si?: string; // string insert
+  sd?: string; // string delete
 }
 
-// String insert.
-// const changeToOp = (path: Path) => (change: Change): StringOp => ({
-//   p: path.concat([change.from]),
-//   si: change.text[0]
-// });
-
-// String delete.
-const changeToOp = (path: Path, transaction: Transaction) => (change: Change): StringOp => ({
-  p: path.concat([change.from]),
-  sd: transaction.startState.doc.slice(change.from, change.to)
-});
+const changeToOp = (path: Path, transaction: Transaction) => (change: Change): StringOp => {
+  const op: StringOp = { p: path.concat([change.from]) };
+  if (change.from === change.to) {
+    op.si = change.text[0];
+  } else {
+    op.sd = transaction.startState.doc.slice(change.from, change.to)
+  }
+  return op;
+};
 
 export const transactionToOps = (path: Path, transaction: Transaction) => {
   return transaction.changes.changes.map(changeToOp(path, transaction));
@@ -45,6 +45,6 @@ const opToChange = (transaction: Transaction, op: Op) => {
 }
 
 export const opsToTransaction = (path: Path, state: EditorState, ops: Op[]) =>
-  ops.reduce(opToChange , state.transaction);
+  ops.reduce(opToChange, state.transaction);
 
 export { ot } from './ot';
