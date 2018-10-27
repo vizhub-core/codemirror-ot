@@ -11,9 +11,9 @@ const withoutTimestamp = (transaction: Transaction) => {
   return object;
 };
 
-const verify = ({ textBefore, textAfter, txn, ops }) => {
+const verify = ({ before, after, txn, ops }) => {
   const path: Path = [];
-  const state = EditorState.create({ doc: textBefore });
+  const state = EditorState.create({ doc: before });
   const transaction = txn(state.transaction);
 
   it('transactionToOps', () => {
@@ -28,25 +28,33 @@ const verify = ({ textBefore, textAfter, txn, ops }) => {
   });
 
   it('applied ops should match expected text', () => {
-    assert.deepEqual(textAfter, json0.apply(textBefore, ops));
+    assert.deepEqual(after, json0.apply(before, ops));
   });
 
   it('inverted applied ops should match expected text', () => {
-    assert.deepEqual(textBefore, json0.apply(textAfter, json0.invert(ops)));
+    assert.deepEqual(before, json0.apply(after, json0.invert(ops)));
   });
 
   it('applied transaction should match expected text', () => {
-    assert.deepEqual(textAfter, transaction.doc.toString());
+    assert.deepEqual(after, transaction.doc.toString());
   });
 };
 
 describe('codemirror-ot', () => {
-  describe('single character insertion', () => {
+  describe('single character insertion from position 0', () => {
     verify({
-      textBefore: '',
-      textAfter:'d',
+      before: '',
+      after:'d',
       txn: transaction => transaction.change(new Change(0, 0, ['d'])),
       ops: [{ p: [0], si: 'd' }]
+    });
+  });
+  describe('single character insertion mid-string', () => {
+    verify({
+      before: 'HelloWorld',
+      after: 'Hello World',
+      txn: transaction => transaction.change(new Change(5, 5, [' '])),
+      ops: [{ p: [5], si: ' ' }]
     });
   });
 });
