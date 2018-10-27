@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { EditorState, Change, Transaction } from 'codemirror-6';
-import * as json0 from 'ot-json0';
+import { type as json0 } from 'ot-json0';
 import { transactionToOps, opsToTransaction, Path } from '../src/index';
 
 // Removes meta.time, which is the only thing that doesn't match.
@@ -10,9 +10,6 @@ const withoutTimestamp = (transaction: Transaction) => {
   delete object.meta.time;
   return object;
 };
-
-console.log(json0);
-
 
 describe('codemirror-ot', () => {
   const path: Path = ['text'];
@@ -32,5 +29,12 @@ describe('codemirror-ot', () => {
         withoutTimestamp(transaction)
       ); 
     });
+
+    it('applied ops and transaction should match', () => {
+      assert.deepEqual('abc', json0.apply('a', [ { p: [1], si: 'bc' } ])); 
+      assert.deepEqual('bc', json0.apply('abc', [ { p: [0], sd: 'a' } ]));
+      assert.deepEqual({ x: 'abc' }, json0.apply({ x: 'a' }, [ { p: ['x', 1], si: 'bc' } ]));
+    });
+
   });
 });
