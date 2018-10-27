@@ -10,21 +10,22 @@ interface StringOp extends Op {
   sd?: string; // string delete
 }
 
-const changeToOps = (path: Path, transaction: Transaction) => (change: Change): StringOp[] => {
-  const op: StringOp = { p: path.concat([change.from]) };
-  if (change.from === change.to) {
-    op.si = change.text[0];
-  } else {
-    op.sd = transaction.startState.doc.slice(change.from, change.to);
+const changeToOps = (path: Path, transaction: Transaction) => (change: Change) => {
+  const ops: StringOp[] = [];
+  const p = path.concat([change.from]);
+  if (change.from !== change.to) {
+    ops.push({ p, sd: transaction.startState.doc.slice(change.from, change.to) });
   }
-  return [op];
+  if (change.text[0].length) {
+    ops.push({ p, si: change.text[0] });
+  }
+  return ops;
 };
 
-export const transactionToOps = (path: Path, transaction: Transaction) => {
-  return transaction.changes.changes
+export const transactionToOps = (path: Path, transaction: Transaction) =>
+  transaction.changes.changes
     .map(changeToOps(path, transaction))
     .reduce((accumulator, ops) => accumulator.concat(ops), []);
-};
 
 const opToChange = (transaction: Transaction, op: Op) => {
   const stringOp = op as StringOp;
