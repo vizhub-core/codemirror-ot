@@ -16,11 +16,12 @@ type StringOp = StringInsert | StringDelete;
 // String delete.
 const changeToOp = (path: Path, transaction: Transaction) => (change: Change): StringOp => ({
   p: path.concat([change.from]),
-  sd: transaction.startState.doc.toString().substring(change.from, change.to)
+  sd: transaction.startState.doc.slice(change.from, change.to)
 });
 
-export const transactionToOps = (path: Path, transaction: Transaction) =>
-  transaction.changes.changes.map(changeToOp(path, transaction));
+export const transactionToOps = (path: Path, transaction: Transaction) => {
+  return transaction.changes.changes.map(changeToOp(path, transaction));
+};
 
 const opToChange = (transaction: Transaction, op: Op) => {
   const stringDelete = op as StringDelete;
