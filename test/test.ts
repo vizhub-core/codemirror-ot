@@ -16,28 +16,30 @@ const verify = ({ before, after, txn, ops }) => {
   const state = EditorState.create({ doc: before });
   const transaction = txn(state.transaction);
 
-  it('transactionToOps', () => {
-    assert.deepEqual(transactionToOps(path, transaction), ops); 
-  });
-
-  it('opsToTransaction', () => {
-    assert.deepEqual(
-      withoutTimestamp(opsToTransaction(path, state, ops)),
-      withoutTimestamp(transaction)
-    ); 
-  });
-
   it('applied ops should match expected text', () => {
     assert.deepEqual(after, json0.apply(before, ops));
   });
 
   it('inverted applied ops should match expected text', () => {
+    //console.log(JSON.stringify(json0.invert(ops)));
     assert.deepEqual(before, json0.apply(after, json0.invert(ops)));
   });
 
   it('applied transaction should match expected text', () => {
     assert.deepEqual(after, transaction.doc.toString());
   });
+
+  it('transactionToOps', () => {
+    assert.deepEqual(transactionToOps(path, transaction), ops);
+  });
+
+  it('opsToTransaction', () => {
+    assert.deepEqual(
+      withoutTimestamp(opsToTransaction(path, state, ops)),
+      withoutTimestamp(transaction)
+    );
+  });
+
 };
 
 describe('codemirror-ot', () => {
@@ -55,6 +57,14 @@ describe('codemirror-ot', () => {
       after: 'Hello World',
       txn: transaction => transaction.change(new Change(5, 5, [' '])),
       ops: [{ p: [5], si: ' ' }]
+    });
+  });
+  describe('single character deletion mid-string', () => {
+    verify({
+      before: 'Hello World',
+      after: 'HelloWorld',
+      txn: transaction => transaction.change(new Change(5, 6, [''])),
+      ops: [{'p': [5], 'sd':' '}]
     });
   });
 });
