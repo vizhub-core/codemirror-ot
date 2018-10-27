@@ -39,32 +39,59 @@ const verify = ({ before, after, txn, ops }) => {
       withoutTimestamp(transaction)
     );
   });
-
 };
 
 describe('codemirror-ot', () => {
-  describe('single character insertion from position 0', () => {
-    verify({
-      before: '',
-      after:'d',
-      txn: transaction => transaction.change(new Change(0, 0, ['d'])),
-      ops: [{ p: [0], si: 'd' }]
+  describe('string insert', () => {
+    describe('single character insert from position 0', () => {
+      verify({
+        before: '',
+        after:'d',
+        txn: transaction => transaction.change(new Change(0, 0, ['d'])),
+        ops: [{ p: [0], si: 'd' }]
+      });
+    });
+    describe('single character insert mid-string', () => {
+      verify({
+        before: 'HelloWorld',
+        after: 'Hello World',
+        txn: transaction => transaction.change(new Change(5, 5, [' '])),
+        ops: [{ p: [5], si: ' ' }]
+      });
+    });
+    describe('multiple character insert mid-string', () => {
+      verify({
+        before: 'HelloWorld',
+        after: 'Hello Beautiful World',
+        txn: transaction => transaction.change(new Change(5, 5, [' Beautiful '])),
+        ops: [{ p: [5], si: ' Beautiful ' }]
+      });
+    });
+    describe('multiple character insert at last position', () => {
+      verify({
+        before: 'HelloWorld',
+        after: 'HelloWorldPeace',
+        txn: transaction => transaction.change(new Change(10, 10, ['Peace'])),
+        ops: [{ p: [10], si: 'Peace' }]
+      });
     });
   });
-  describe('single character insertion mid-string', () => {
-    verify({
-      before: 'HelloWorld',
-      after: 'Hello World',
-      txn: transaction => transaction.change(new Change(5, 5, [' '])),
-      ops: [{ p: [5], si: ' ' }]
+  describe('string delete', () => {
+    describe('single character delete mid-string', () => {
+      verify({
+        before: 'Hello World',
+        after: 'HelloWorld',
+        txn: transaction => transaction.change(new Change(5, 6, [''])),
+        ops: [{'p': [5], 'sd':' '}]
+      });
     });
-  });
-  describe('single character deletion mid-string', () => {
-    verify({
-      before: 'Hello World',
-      after: 'HelloWorld',
-      txn: transaction => transaction.change(new Change(5, 6, [''])),
-      ops: [{'p': [5], 'sd':' '}]
+    describe('multiple character delete mid-string', () => {
+      verify({
+        before: 'Hello Beautiful World',
+        after: 'HelloWorld',
+        txn: transaction => transaction.change(new Change(5, 16, [''])),
+        ops: [{ p: [5], sd: ' Beautiful ' }]
+      });
     });
   });
 });
