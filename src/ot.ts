@@ -7,7 +7,7 @@ import {
 import { opsToTransaction } from './opsToTransaction';
 import { transactionToOps } from './transactionToOps';
 
-export const ot = emitOps => {
+export const ot = (path, emitOps) => {
   let plugin;
   const dispatchOp = new Promise(resolve => {
     console.log('A');
@@ -18,15 +18,15 @@ export const ot = emitOps => {
         // from remote OT operations.
         resolve(ops => {
           console.log('dispatching OT');
-          view.dispatch(opsToTransaction(ops));
+          view.dispatch(opsToTransaction(path, view.state, ops));
         });
 
         return {
           // Listen for all transactions,
           // so they can be converted to OT operations.
           updateState(view: EditorView, prev: EditorState, transactions: Transaction[]) {
-            const ops = transactions.reduce((accumulator, transaction) => {
-              return accumulator.concat(transactionToOps(transaction));
+            const ops = transactions.reduce((ops, transaction) => {
+              return ops.concat(transactionToOps(path, transaction))
             }, []);
             emitOps(ops);
           }
