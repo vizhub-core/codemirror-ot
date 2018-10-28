@@ -1,22 +1,17 @@
-import {
-  Plugin,
-  EditorView,
-  EditorState,
-  Transaction
-} from 'codemirror-6';
+import { Plugin, EditorView, EditorState, Transaction } from 'codemirror-6';
 import { opsToTransaction } from './opsToTransaction';
 import { transactionToOps } from './transactionToOps';
+import { Op, Path } from './op';
 
-export const ot = (path, emitOps) => {
+export const ot = ({ path: Path, emitOps: (ops: Op[]): void }): { plugin: Plugin, dispatchOpsPromise: Promise<(ops):void>} => {
   let plugin;
-  const dispatchOp = new Promise(resolve => {
-    console.log('A');
+  const dispatchOpsPromise = new Promise(resolve => {
     plugin = new Plugin({
       view: (view: EditorView) => {
 
         // Inject programmatically created transactions,
         // from remote OT operations.
-        resolve(ops => {
+        resolve(ops: Op[] => {
           console.log('dispatching OT');
           view.dispatch(opsToTransaction(path, view.state, ops));
         });
@@ -34,9 +29,8 @@ export const ot = (path, emitOps) => {
       }
     });
   });
-  console.log('B');
   return {
     plugin,
-    dispatchOp
+    dispatchOpsPromise
   };
 };

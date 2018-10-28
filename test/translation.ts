@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { EditorState, Change, Transaction } from 'codemirror-6';
 import { type as json0 } from 'ot-json0';
-import { transactionToOps, opsToTransaction, Path } from '../src/index';
+import { transactionToOps, opsToTransaction } from '../src/index';
 
 // Removes meta.time, which is the only thing that doesn't match.
 const withoutTimestamp = (transaction: Transaction) => {
@@ -12,7 +12,7 @@ const withoutTimestamp = (transaction: Transaction) => {
 };
 
 const verify = ({ before, after, txn, ops }) => {
-  const path: Path = [];
+  const path = [];
   const state = EditorState.create({ doc: before });
   const transaction = txn(state.transaction);
 
@@ -21,7 +21,6 @@ const verify = ({ before, after, txn, ops }) => {
   });
 
   it('inverted applied ops should match expected text', () => {
-    //console.log(JSON.stringify(json0.invert(ops)));
     assert.deepEqual(before, json0.apply(after, json0.invert(ops)));
   });
 
@@ -41,7 +40,7 @@ const verify = ({ before, after, txn, ops }) => {
   });
 };
 
-describe('codemirror-ot', () => {
+describe('translation (transactionToOps and opsToTransaction)', () => {
   describe('string insert', () => {
     describe('single character insert from position 0', () => {
       verify({
