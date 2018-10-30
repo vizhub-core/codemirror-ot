@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { EditorState, EditorView } from 'codemirror-6';
+import { EditorState } from 'codemirror-6';
 import { otPlugin, Path, Op } from '../src/index';
 
 describe('ot plugin', () => {
@@ -13,9 +13,9 @@ describe('ot plugin', () => {
     const plugins = [plugin];
 
     // This line currently fails with error 'ReferenceError: document is not defined'
-    new EditorView(EditorState.create({ doc, plugins }))
+    EditorState.create({ doc, plugins });
 
-    assert.equal(emittedOps, []);
+    assert.deepEqual(emittedOps, []);
 
     //plugin.spec.view(view);
 
