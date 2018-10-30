@@ -1,17 +1,20 @@
 import * as assert from 'assert';
 import { EditorState, EditorView } from 'codemirror-6';
-import { ot, Path, Op } from '../src/index';
+import { otPlugin, Path, Op } from '../src/index';
 
 describe('ot plugin', () => {
   it('should emit ops', async () => {
     let emittedOps: Op[] = [];
     const path: Path = [];
     const emitOps = ops => emittedOps = ops;
-    const plugin = ot(path, emitOps);
+    const plugin = otPlugin(path, emitOps);
 
     const doc = 'HelloWorld';
     const plugins = [plugin];
+
+    // This line currently fails with error 'ReferenceError: document is not defined'
     new EditorView(EditorState.create({ doc, plugins }))
+
     assert.equal(emittedOps, []);
 
     //plugin.spec.view(view);
