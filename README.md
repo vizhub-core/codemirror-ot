@@ -14,3 +14,4 @@ Related work:
  * https://github.com/nickasd/sharedb-codemirror - A fork of the `ejones` project from 2017.
  * https://github.com/datavis-tech/codemirror-binding - A collaboration module for CodeMirror 5.
  * https://github.com/reedsy/quill-cursors - Collaboration with presence cursors for Quill.
+ * https://github.com/share/sharedb/pull/207 - PR on ShareDB for adding presence cursors.
