@@ -1,13 +1,14 @@
 import { Path, Op } from './op';
 import { Change, Transaction, EditorState } from 'codemirror-6';
 
+const siToText = si => si.split('\n');
+
 const opToChange = (transaction: Transaction, op: Op) => {
   const from = op.p[op.p.length - 1] as number;
 
   // String insert
   if (op.si !== undefined) {
-    const text = op.si.split('\n');
-    return transaction.change(new Change(from, from, text));
+    return transaction.change(new Change(from, from, siToText(op.si)));
   }
 
   // String delete
@@ -32,7 +33,7 @@ const replacementOpsToChange = (transaction: Transaction, ops: Op[]) => {
   const from = op0.p[op0.p.length - 1] as number;
   const to = from + sd.length;
 
-  return transaction.change(new Change(from, to, [si]));
+  return transaction.change(new Change(from, to, siToText(si)));
 }
 
 export const opsToTransaction = (path: Path, state: EditorState, ops: Op[]) =>

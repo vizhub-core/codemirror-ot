@@ -11,6 +11,8 @@ const withoutTimestamp = (transaction: Transaction) => {
   return object;
 };
 
+// Verifies that ops and transaction match in terms of behavior,
+// and that the translation between ops and transaction holds in both directions.
 const verify = ({ before, after, txn, ops }) => {
   const path = [];
   const state = EditorState.create({ doc: before });
@@ -106,8 +108,8 @@ describe('translation (transactionToOps and opsToTransaction)', () => {
       });
     });
   });
-  describe('multiple lines', () => {
-    describe('multi-line insert from position 0', () => {
+  describe('newlines', () => {
+    describe('newline insert', () => {
       verify({
         before: '',
         after: '\n',
@@ -115,8 +117,21 @@ describe('translation (transactionToOps and opsToTransaction)', () => {
         ops: [{ p: [0], si: '\n' }]
       });
     });
-    // string insert with multiple lines
-    // string delete with multiple lines
-    // string replace multiple lines
+    describe('newline delete', () => {
+      verify({
+        before: '\n',
+        after: '',
+        txn: transaction => transaction.change(new Change(0, 1, [''])),
+        ops: [{ p: [0], sd: '\n' }]
+      });
+    });
+    describe('replace with newlines', () => {
+      verify({
+        before: 'eat\na\npie',
+        after: 'eat\nan\napple\npie',
+        txn: transaction => transaction.change(new Change(4, 5, ['an', 'apple' ])),
+        ops: [ { p: [4], sd: 'a' }, { p: [4], si: 'an\napple' } ]
+      });
+    });
   });
 });
