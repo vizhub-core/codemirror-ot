@@ -6,8 +6,8 @@ const opToChange = (transaction: Transaction, op: Op) => {
 
   // String insert
   if (op.si !== undefined) {
-    const str = op.si;
-    return transaction.change(new Change(from, from, [str]));
+    const text = op.si.split('\n');
+    return transaction.change(new Change(from, from, text));
   }
 
   // String delete
@@ -23,6 +23,7 @@ const opToChange = (transaction: Transaction, op: Op) => {
 const eq = (a, b) => a.length === b.length && a.every((aItem, i) => aItem === b[i]);
 const isReplacement = ops => ops.length === 2 && eq(ops[0].p, ops[1].p) && ops[0].sd && ops[1].si;
 
+// String replacement
 const replacementOpsToChange = (transaction: Transaction, ops: Op[]) => {
   const op0 = ops[0];
   const sd = op0.sd;
