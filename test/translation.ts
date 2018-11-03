@@ -11,6 +11,8 @@ const withoutTimestamp = (transaction: Transaction) => {
   return object;
 };
 
+// Verifies that ops and transaction match in terms of behavior,
+// and that the translation between ops and transaction holds in both directions.
 const verify = ({ before, after, txn, ops }) => {
   const path = [];
   const state = EditorState.create({ doc: before });
@@ -100,9 +102,35 @@ describe('translation (transactionToOps and opsToTransaction)', () => {
         after: 'Hello-World',
         txn: transaction => transaction.change(new Change(5, 6, ['-'])),
         ops: [
-          {'p': [5], 'sd':' '},
-          {'p': [5], 'si':'-'}
+          {'p': [5], 'sd': ' '},
+          {'p': [5], 'si': '-'}
         ]
+      });
+    });
+  });
+  describe('newlines', () => {
+    describe('newline insert', () => {
+      verify({
+        before: '',
+        after: '\n',
+        txn: transaction => transaction.change(new Change(0, 0, ['', ''])),
+        ops: [{ p: [0], si: '\n' }]
+      });
+    });
+    describe('newline delete', () => {
+      verify({
+        before: '\n',
+        after: '',
+        txn: transaction => transaction.change(new Change(0, 1, [''])),
+        ops: [{ p: [0], sd: '\n' }]
+      });
+    });
+    describe('replace with newlines', () => {
+      verify({
+        before: 'eat\na\npie',
+        after: 'eat\nan\napple\npie',
+        txn: transaction => transaction.change(new Change(4, 5, ['an', 'apple' ])),
+        ops: [ { p: [4], sd: 'a' }, { p: [4], si: 'an\napple' } ]
       });
     });
   });
