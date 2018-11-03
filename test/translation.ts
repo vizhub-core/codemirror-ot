@@ -100,10 +100,15 @@ describe('translation (transactionToOps and opsToTransaction)', () => {
         after: 'Hello-World',
         txn: transaction => transaction.change(new Change(5, 6, ['-'])),
         ops: [
-          {'p': [5], 'sd':' '},
-          {'p': [5], 'si':'-'}
+          {'p': [5], 'sd': ' '},
+          {'p': [5], 'si': '-'}
         ]
       });
     });
+  });
+  describe('multiple lines', () => {
+    // string insert with multiple lines
+    // string delete with multiple lines
+    // string replace multiple lines
   });
 });
