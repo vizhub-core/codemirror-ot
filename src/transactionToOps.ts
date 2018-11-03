@@ -4,12 +4,18 @@ import { Change, Transaction } from 'codemirror-6';
 const changeToOps = (path: Path, transaction: Transaction) => (change: Change) => {
   const ops: Op[] = [];
   const p = path.concat([change.from]);
-  console.log(transaction);
   if (change.from !== change.to) {
-    ops.push({ p, sd: transaction.startState.doc.slice(change.from, change.to) });
+    ops.push({
+      p,
+      sd: transaction.startState.doc.slice(change.from, change.to)
+    });
   }
-  if (change.text[0].length) {
-    ops.push({ p, si: change.text[0] });
+  const joined = change.text.join('\n');
+  if (joined.length) {
+    ops.push({
+      p,
+      si: joined
+    });
   }
   return ops;
 };
