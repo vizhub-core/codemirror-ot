@@ -10,9 +10,12 @@ export const otPlugin = (path: Path, emitOps: (ops: Op[]) => any) => new Plugin(
       return new OTState();
     },
     apply(transaction: Transaction, state: OTState, editorState: EditorState): OTState {
-      emitOps(transactionToOps(path, transaction));
+      const ops = transactionToOps(path, transaction);
+      if (ops.length > 0) {
+        emitOps(ops);
+      }
       return state;
     },
-    debugName: "otPluginState"
+    debugName: 'otPluginState'
   })
 });
