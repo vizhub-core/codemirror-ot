@@ -107,6 +107,14 @@ describe('translation (transactionToOps and opsToTransaction)', () => {
     });
   });
   describe('multiple lines', () => {
+    describe('multi-line insert from position 0', () => {
+      verify({
+        before: '',
+        after:'d',
+        txn: transaction => transaction.change(new Change(0, 0, ['d', ''])),
+        ops: [{ p: [0], si: 'd\n' }]
+      });
+    });
     // string insert with multiple lines
     // string delete with multiple lines
     // string replace multiple lines
