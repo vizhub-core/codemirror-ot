@@ -1,5 +1,5 @@
 # codemirror-ot
-Real-time collaboration plugin for CodeMirror 6. For background & writeup, see [Medium: Codemirror 6 Experiments](https://medium.com/@currankelleher/codemirror-6-experiments-a3930bf03781)
+Real-time collaboration plugin for CodeMirror 6. For background & writeup, see [Medium: Codemirror 6 Experiments](https://medium.com/@currankelleher/codemirror-6-experiments-a3930bf03781).
 
 At its core this library is a translator between [JSON Operational Transformation](https://github.com/ottypes/json0) and [CodeMirror 6](https://codemirror.net/6/) [transactions](https://codemirror.net/6/design.html#state).
 
