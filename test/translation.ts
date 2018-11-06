@@ -13,10 +13,11 @@ const withoutTimestamp = (transaction: Transaction) => {
 
 // Verifies that ops and transaction match in terms of behavior,
 // and that the translation between ops and transaction holds in both directions.
-const verify = ({ before, after, txn, ops }) => {
+export const verify = ({ before, after, txn, ops, txnFromOps = undefined}) => {
   const path = [];
   const state = EditorState.create({ doc: before });
   const transaction = txn(state.transaction);
+  const expectedTransaction = txnFromOps ? txnFromOps(state.transaction) : transaction;
 
   it('applied ops should match expected text', () => {
     assert.deepEqual(after, json0.apply(before, ops));
@@ -37,7 +38,7 @@ const verify = ({ before, after, txn, ops }) => {
   it('opsToTransaction', () => {
     assert.deepEqual(
       withoutTimestamp(opsToTransaction(path, state, ops)),
-      withoutTimestamp(transaction)
+      withoutTimestamp(expectedTransaction)
     );
   });
 };
@@ -104,7 +105,10 @@ describe('translation (transactionToOps and opsToTransaction)', () => {
         ops: [
           {'p': [5], 'sd': ' '},
           {'p': [5], 'si': '-'}
-        ]
+        ],
+        txnFromOps: transaction => transaction
+          .change(new Change(5, 6, ['']))
+          .change(new Change(5, 5, ['-']))
       });
     });
   });
@@ -130,7 +134,10 @@ describe('translation (transactionToOps and opsToTransaction)', () => {
         before: 'eat\na\npie',
         after: 'eat\nan\napple\npie',
         txn: transaction => transaction.change(new Change(4, 5, ['an', 'apple' ])),
-        ops: [ { p: [4], sd: 'a' }, { p: [4], si: 'an\napple' } ]
+        ops: [ { p: [4], sd: 'a' }, { p: [4], si: 'an\napple' } ],
+        txnFromOps: transaction => transaction
+          .change(new Change(4, 5, ['']))
+          .change(new Change(4, 4, ['an', 'apple']))
       });
     });
   });
