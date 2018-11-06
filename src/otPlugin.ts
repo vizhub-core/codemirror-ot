@@ -1,4 +1,4 @@
-import { Plugin, EditorState, Transaction, StateField } from 'codemirror-6';
+import { Plugin, EditorState, Transaction, StateField } from 'codemirror-6-prerelease';
 import { transactionToOps } from './transactionToOps';
 import { Op, Path } from './op';
 

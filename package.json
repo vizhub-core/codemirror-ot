@@ -27,7 +27,7 @@
   },
   "homepage": "https://github.com/datavis-tech/codemirror-ot#readme",
   "dependencies": {
-    "codemirror-6": "1"
+    "codemirror-6-prerelease": "1"
   },
   "devDependencies": {
     "@types/mocha": "^5.2.5",
