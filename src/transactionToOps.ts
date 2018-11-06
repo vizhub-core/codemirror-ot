@@ -1,5 +1,5 @@
 import { Path, Op } from './op';
-import { Change, Transaction } from 'codemirror-6';
+import { Change, Transaction } from 'codemirror-6-prerelease';
 
 const changeToOps = (path: Path, transaction: Transaction) => (change: Change) => {
   const ops: Op[] = [];
