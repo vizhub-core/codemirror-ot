@@ -2,11 +2,13 @@
   "name": "codemirror-ot",
   "version": "1.0.0",
   "description": "Operational Transformation adapter for CodeMirror 6.",
-  "main": "./dist/codemirror-ot.js",
+  "main": "dist/codemirror-ot.js",
   "types": "dist/codemirror-ot.d.ts",
   "scripts": {
     "build": "rollup -c rollup.config.js",
-    "test": "mocha -r ts-node/register test/*"
+    "test": "mocha -r ts-node/register test/*",
+    "prepublishOnly": "npm run build && npm run test",
+    "postpublish": "git push && git push --tags"
   },
   "repository": {
     "type": "git",
