@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { EditorState, Change } from 'codemirror-6-prerelease';
+import { EditorState, Change } from '../src/codemirror';
 import { otPlugin, Path, Op } from '../src/index';
 
 describe('ot plugin', () => {

@@ -3,7 +3,7 @@
 export {
   Change,
   Transaction,
-  EditorState
+  EditorState,
   Plugin,
   StateField
 } from '@datavis-tech/codemirror-6-prerelease';

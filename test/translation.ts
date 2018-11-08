@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { EditorState, Change, Transaction } from 'codemirror-6-prerelease';
+import { EditorState, Change, Transaction } from '../src/codemirror';
 import { type as json0 } from 'ot-json0';
 import { transactionToOps, opsToTransaction } from '../src/index';
 
