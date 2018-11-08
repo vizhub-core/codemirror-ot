@@ -1,5 +1,5 @@
 import { Path, Op } from './op';
-import { Change, Transaction, EditorState } from 'codemirror-6-prerelease';
+import { Change, Transaction, EditorState } from './codemirror';
 
 const siToText = si => si.split('\n');
 
