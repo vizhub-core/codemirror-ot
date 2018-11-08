@@ -1,8 +1,7 @@
-import { Path, Op } from './op';
 import { Change, Transaction } from './codemirror';
 
-const changeToOps = (path: Path, transaction: Transaction) => (change: Change) => {
-  const ops: Op[] = [];
+const changeToOps = (path, transaction) => change => {
+  const ops = [];
   const p = path.concat([change.from]);
 
   // String delete
@@ -24,7 +23,7 @@ const changeToOps = (path: Path, transaction: Transaction) => (change: Change) =
   return ops;
 };
 
-export const transactionToOps = (path: Path, transaction: Transaction) =>
+export const transactionToOps = (path, transaction) =>
   transaction.changes.changes
     .map(changeToOps(path, transaction))
     .reduce((accumulator, ops) => accumulator.concat(ops), []);

@@ -4,11 +4,9 @@ import { type as json0 } from 'ot-json0';
 import { transactionToOps, opsToTransaction } from '../src/index';
 
 // Removes meta.time, which is the only thing that doesn't match.
-const withoutTimestamp = (transaction: Transaction) => {
-  // Hack around TypeScript's complaint that meta is private.
-  const object = JSON.parse(JSON.stringify(transaction));
-  delete object.meta.time;
-  return object;
+const withoutTimestamp = transaction => {
+  delete transaction.meta.time;
+  return transaction;
 };
 
 const atPath = (obj, path) => path.reduce((d, key) => d[key], obj);
@@ -66,7 +64,7 @@ describe('translation (transactionToOps and opsToTransaction)', () => {
     describe('single character insert from position 0', () => {
       verify({
         before: '',
-        after:'d',
+        after: 'd',
         txn: transaction => transaction.change(new Change(0, 0, ['d'])),
         ops: [{ p: [0], si: 'd' }]
       });
@@ -83,7 +81,8 @@ describe('translation (transactionToOps and opsToTransaction)', () => {
       verify({
         before: 'HelloWorld',
         after: 'Hello Beautiful World',
-        txn: transaction => transaction.change(new Change(5, 5, [' Beautiful '])),
+        txn: transaction =>
+          transaction.change(new Change(5, 5, [' Beautiful '])),
         ops: [{ p: [5], si: ' Beautiful ' }]
       });
     });
@@ -102,7 +101,7 @@ describe('translation (transactionToOps and opsToTransaction)', () => {
         before: 'Hello World',
         after: 'HelloWorld',
         txn: transaction => transaction.change(new Change(5, 6, [''])),
-        ops: [{'p': [5], 'sd':' '}]
+        ops: [{ p: [5], sd: ' ' }]
       });
     });
     describe('multiple character delete mid-string', () => {
@@ -120,13 +119,11 @@ describe('translation (transactionToOps and opsToTransaction)', () => {
         before: 'Hello World',
         after: 'Hello-World',
         txn: transaction => transaction.change(new Change(5, 6, ['-'])),
-        ops: [
-          {'p': [5], 'sd': ' '},
-          {'p': [5], 'si': '-'}
-        ],
-        txnFromOps: transaction => transaction
-          .change(new Change(5, 6, ['']))
-          .change(new Change(5, 5, ['-']))
+        ops: [{ p: [5], sd: ' ' }, { p: [5], si: '-' }],
+        txnFromOps: transaction =>
+          transaction
+            .change(new Change(5, 6, ['']))
+            .change(new Change(5, 5, ['-']))
       });
     });
   });
@@ -151,11 +148,13 @@ describe('translation (transactionToOps and opsToTransaction)', () => {
       verify({
         before: 'eat\na\npie',
         after: 'eat\nan\napple\npie',
-        txn: transaction => transaction.change(new Change(4, 5, ['an', 'apple' ])),
-        ops: [ { p: [4], sd: 'a' }, { p: [4], si: 'an\napple' } ],
-        txnFromOps: transaction => transaction
-          .change(new Change(4, 5, ['']))
-          .change(new Change(4, 4, ['an', 'apple']))
+        txn: transaction =>
+          transaction.change(new Change(4, 5, ['an', 'apple'])),
+        ops: [{ p: [4], sd: 'a' }, { p: [4], si: 'an\napple' }],
+        txnFromOps: transaction =>
+          transaction
+            .change(new Change(4, 5, ['']))
+            .change(new Change(4, 4, ['an', 'apple']))
       });
     });
   });
@@ -165,7 +164,8 @@ describe('translation (transactionToOps and opsToTransaction)', () => {
         path: ['title'],
         before: { title: 'HelloWorld' },
         after: { title: 'Hello Beautiful World' },
-        txn: transaction => transaction.change(new Change(5, 5, [' Beautiful '])),
+        txn: transaction =>
+          transaction.change(new Change(5, 5, [' Beautiful '])),
         ops: [{ p: ['title', 5], si: ' Beautiful ' }]
       });
     });
@@ -183,19 +183,25 @@ describe('translation (transactionToOps and opsToTransaction)', () => {
         path: ['title'],
         before: { title: 'eat\na\npie' },
         after: { title: 'eat\nan\napple\npie' },
-        txn: transaction => transaction.change(new Change(4, 5, ['an', 'apple' ])),
-        ops: [ { p: ['title', 4], sd: 'a' }, { p: ['title', 4], si: 'an\napple' } ],
-        txnFromOps: transaction => transaction
-          .change(new Change(4, 5, ['']))
-          .change(new Change(4, 4, ['an', 'apple']))
+        txn: transaction =>
+          transaction.change(new Change(4, 5, ['an', 'apple'])),
+        ops: [
+          { p: ['title', 4], sd: 'a' },
+          { p: ['title', 4], si: 'an\napple' }
+        ],
+        txnFromOps: transaction =>
+          transaction
+            .change(new Change(4, 5, ['']))
+            .change(new Change(4, 4, ['an', 'apple']))
       });
     });
     describe('deep paths', () => {
       verify({
         path: ['files', 'README.md'],
-        before: { files: { 'README.md': 'HelloWorld' }},
-        after: { files: { 'README.md': 'Hello Beautiful World' }},
-        txn: transaction => transaction.change(new Change(5, 5, [' Beautiful '])),
+        before: { files: { 'README.md': 'HelloWorld' } },
+        after: { files: { 'README.md': 'Hello Beautiful World' } },
+        txn: transaction =>
+          transaction.change(new Change(5, 5, [' Beautiful '])),
         ops: [{ p: ['files', 'README.md', 5], si: ' Beautiful ' }]
       });
     });

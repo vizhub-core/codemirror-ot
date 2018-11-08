@@ -1,10 +1,9 @@
-import { Path, Op } from './op';
-import { Change, Transaction, EditorState } from './codemirror';
+import { Change } from './codemirror';
 
 const siToText = si => si.split('\n');
 
-const opToChange = (transaction: Transaction, op: Op) => {
-  const from = op.p[op.p.length - 1] as number;
+const opToChange = (transaction, op) => {
+  const from = op.p[op.p.length - 1];
 
   // String insert
   if (op.si !== undefined) {
@@ -17,7 +16,7 @@ const opToChange = (transaction: Transaction, op: Op) => {
   }
 
   throw new Error('Invalid string op.');
-}
+};
 
-export const opsToTransaction = (path: Path, state: EditorState, ops: Op[]) =>
+export const opsToTransaction = (path, state, ops) =>
   ops.reduce(opToChange, state.transaction);
