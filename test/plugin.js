@@ -1,10 +1,10 @@
 import * as assert from 'assert';
 import { EditorState, Change } from '../src/codemirror';
-import { otPlugin, Path, Op } from '../src/index';
+import { otPlugin } from '../src/index';
 
 describe('ot plugin', () => {
-  let emittedOps: Op[] = [];
-  const path: Path = [];
+  let emittedOps = [];
+  const path = [];
   const emitOps = ops => emittedOps = ops;
 
   const state = EditorState.create({

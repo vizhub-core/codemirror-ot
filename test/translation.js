@@ -4,11 +4,9 @@ import { type as json0 } from 'ot-json0';
 import { transactionToOps, opsToTransaction } from '../src/index';
 
 // Removes meta.time, which is the only thing that doesn't match.
-const withoutTimestamp = (transaction: Transaction) => {
-  // Hack around TypeScript's complaint that meta is private.
-  const object = JSON.parse(JSON.stringify(transaction));
-  delete object.meta.time;
-  return object;
+const withoutTimestamp = transaction => {
+  delete transaction.meta.time;
+  return transaction;
 };
 
 const atPath = (obj, path) => path.reduce((d, key) => d[key], obj);
