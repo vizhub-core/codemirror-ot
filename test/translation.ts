@@ -49,16 +49,16 @@ const verify = options => {
     assert.deepEqual(docAfter, transaction.doc.toString());
   });
 
-  //it('transactionToOps', () => {
-  //  assert.deepEqual(transactionToOps(path, transaction), ops);
-  //});
+  it('transactionToOps', () => {
+    assert.deepEqual(transactionToOps(path, transaction), ops);
+  });
 
-  //it('opsToTransaction', () => {
-  //  assert.deepEqual(
-  //    withoutTimestamp(opsToTransaction(path, state, ops)),
-  //    withoutTimestamp(expectedTransaction)
-  //  );
-  //});
+  it('opsToTransaction', () => {
+    assert.deepEqual(
+      withoutTimestamp(opsToTransaction(path, state, ops)),
+      withoutTimestamp(expectedTransaction)
+    );
+  });
 };
 
 describe('translation (transactionToOps and opsToTransaction)', () => {
@@ -167,6 +167,36 @@ describe('translation (transactionToOps and opsToTransaction)', () => {
         after: { title: 'Hello Beautiful World' },
         txn: transaction => transaction.change(new Change(5, 5, [' Beautiful '])),
         ops: [{ p: ['title', 5], si: ' Beautiful ' }]
+      });
+    });
+    describe('multiple character delete mid-string', () => {
+      verify({
+        path: ['title'],
+        before: { title: 'Hello Beautiful World' },
+        after: { title: 'HelloWorld' },
+        txn: transaction => transaction.change(new Change(5, 16, [''])),
+        ops: [{ p: ['title', 5], sd: ' Beautiful ' }]
+      });
+    });
+    describe('replace with newlines', () => {
+      verify({
+        path: ['title'],
+        before: { title: 'eat\na\npie' },
+        after: { title: 'eat\nan\napple\npie' },
+        txn: transaction => transaction.change(new Change(4, 5, ['an', 'apple' ])),
+        ops: [ { p: ['title', 4], sd: 'a' }, { p: ['title', 4], si: 'an\napple' } ],
+        txnFromOps: transaction => transaction
+          .change(new Change(4, 5, ['']))
+          .change(new Change(4, 4, ['an', 'apple']))
+      });
+    });
+    describe('deep paths', () => {
+      verify({
+        path: ['files', 'README.md'],
+        before: { files: { 'README.md': 'HelloWorld' }},
+        after: { files: { 'README.md': 'Hello Beautiful World' }},
+        txn: transaction => transaction.change(new Change(5, 5, [' Beautiful '])),
+        ops: [{ p: ['files', 'README.md', 5], si: ' Beautiful ' }]
       });
     });
   });
