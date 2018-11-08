@@ -16,7 +16,7 @@ const opToChange = (transaction, op) => {
   }
 
   throw new Error('Invalid string op.');
-}
+};
 
 export const opsToTransaction = (path, state, ops) =>
   ops.reduce(opToChange, state.transaction);

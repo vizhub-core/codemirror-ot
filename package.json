@@ -4,6 +4,7 @@
   "description": "Operational Transformation adapter for CodeMirror 6.",
   "main": "dist/codemirror-ot.js",
   "scripts": {
+    "prettier": "prettier --single-quote **/*.js --write",
     "build": "rollup -c rollup.config.js",
     "test": "mocha -r esm test/*",
     "prepublishOnly": "npm run build && npm run test",
@@ -26,7 +27,8 @@
   },
   "homepage": "https://github.com/datavis-tech/codemirror-ot#readme",
   "dependencies": {
-    "@datavis-tech/codemirror-6-prerelease": "1"
+    "@datavis-tech/codemirror-6-prerelease": "1",
+    "prettier": "^1.15.1"
   },
   "devDependencies": {
     "esm": "^3.0.84",

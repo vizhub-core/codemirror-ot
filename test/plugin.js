@@ -5,7 +5,7 @@ import { otPlugin } from '../src/index';
 describe('ot plugin', () => {
   let emittedOps = [];
   const path = [];
-  const emitOps = ops => emittedOps = ops;
+  const emitOps = ops => (emittedOps = ops);
 
   const state = EditorState.create({
     doc: 'HelloWorld',
