@@ -19,4 +19,4 @@ const opToChange = (transaction, op) => {
 };
 
 export const opsToTransaction = (path, state, ops) =>
-  ops.reduce(opToChange, state.transaction);
+  ops.reduce(opToChange, state.t());

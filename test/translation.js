@@ -3,9 +3,9 @@ import { EditorState, Change, Transaction } from '../src/codemirror';
 import { type as json0 } from 'ot-json0';
 import { transactionToOps, opsToTransaction } from '../src/index';
 
-// Removes meta.time, which is the only thing that doesn't match.
+// Removes metadata, which is the only thing that doesn't match.
 const withoutTimestamp = transaction => {
-  delete transaction.meta.time;
+  delete transaction.metadata;
   return transaction;
 };
 
@@ -38,10 +38,9 @@ const verify = options => {
   const state = EditorState.create({
     doc: docBefore
   });
-  const transaction = txn(state.transaction);
-  const expectedTransaction = txnFromOps
-    ? txnFromOps(state.transaction)
-    : transaction;
+
+  const transaction = txn(state.t());
+  const expectedTransaction = txnFromOps ? txnFromOps(state.t()) : transaction;
 
   it('applied transaction should match expected text', () => {
     assert.deepEqual(docAfter, transaction.doc.toString());
