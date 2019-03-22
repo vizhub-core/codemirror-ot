@@ -1,3 +1,3 @@
 export { transactionToOps } from './transactionToOps';
 export { opsToTransaction } from './opsToTransaction';
-export { otExtension } from './otExtension';
+export { ot } from './ot';

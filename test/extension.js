@@ -1,15 +1,15 @@
 import * as assert from 'assert';
 import { EditorState, Change } from '../src/codemirror';
-import { otExtension } from '../src/index';
+import { ot } from '../src/index';
 
-describe('otExtension', () => {
+describe('ot', () => {
   let emittedOps = [];
   const path = [];
   const emitOps = ops => (emittedOps = ops);
 
   const state = EditorState.create({
     doc: 'HelloWorld',
-    extensions: [otExtension(path, emitOps)]
+    extensions: [ot(path, emitOps)]
   });
 
   it('should emit ops', async () => {

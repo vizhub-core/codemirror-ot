@@ -3,7 +3,7 @@ import { EditorState, Change, Transaction } from '../src/codemirror';
 import { type as json0 } from 'ot-json0';
 import { transactionToOps, opsToTransaction } from '../src/index';
 
-// Removes meta.time, which is the only thing that doesn't match.
+// Removes metadata, which is the only thing that doesn't match.
 const withoutTimestamp = transaction => {
   delete transaction.metadata;
   return transaction;
