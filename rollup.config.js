@@ -3,7 +3,7 @@ import nodeResolve from "rollup-plugin-node-resolve";
 
 export default {
   external: ["@datavis-tech/codemirror-6-prerelease"],
-  input: "./src/index.ts",
+  input: "./src/index.js",
   output: {
     format: "cjs",
     file: "./dist/codemirror-ot.js",

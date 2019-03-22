@@ -5,6 +5,7 @@
   "main": "dist/codemirror-ot.js",
   "scripts": {
     "prettier": "prettier --single-quote **/*.js --write",
+    "lint": "eslint .",
     "build": "rollup -c rollup.config.js",
     "test": "mocha -r esm test/*",
     "prepublishOnly": "npm run build && npm run test",
@@ -31,6 +32,7 @@
     "prettier": "^1.16.4"
   },
   "devDependencies": {
+    "eslint": "^5.15.3",
     "esm": "^3.2.20",
     "mocha": "^6.0.2",
     "ot-json0": "^1.1.0",

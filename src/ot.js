@@ -1,4 +1,4 @@
-import { EditorState, Transaction, StateField } from './codemirror';
+import { StateField } from './codemirror';
 import { transactionToOps } from './transactionToOps';
 
 export const ot = (path, emitOps) =>

@@ -1,5 +1,3 @@
-import { Change, Transaction } from './codemirror';
-
 const changeToOps = (path, transaction) => change => {
   const ops = [];
   const p = path.concat([change.from]);
