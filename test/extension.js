@@ -5,11 +5,11 @@ import { ot } from '../src/index';
 describe('ot', () => {
   let emittedOps = [];
   const path = [];
-  const emitOps = ops => (emittedOps = ops);
+  const emitOp = ops => (emittedOps = ops);
 
   const state = EditorState.create({
     doc: 'HelloWorld',
-    extensions: [ot(path, emitOps)]
+    extensions: [ot(path, emitOp)]
   });
 
   it('should emit ops', async () => {
