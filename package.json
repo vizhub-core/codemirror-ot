@@ -1,19 +1,21 @@
 {
   "name": "codemirror-ot",
-  "version": "2.1.0",
+  "version": "3.5.0",
   "description": "Operational Transformation adapter for CodeMirror 6.",
   "main": "dist/codemirror-ot.js",
+  "module": "src/index.js",
   "scripts": {
-    "prettier": "prettier --single-quote **/*.js --write",
+    "prettier": "prettier --single-quote {*.js,**/*.js} --write",
     "lint": "eslint .",
     "build": "rollup -c rollup.config.js",
-    "test": "mocha -r esm test/*",
+    "test": "npm run build && NODE_OPTIONS=--enable-source-maps mocha dist/test",
     "prepublishOnly": "npm run build && npm run test",
-    "postpublish": "git push && git push --tags"
+    "postpublish": "git push && git push --tags",
+    "ncu": "ncu -u"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/datavis-tech/codemirror-ot.git"
+    "url": "git+https://github.com/vizhub-core/codemirror-ot.git"
   },
   "keywords": [
     "OT",
@@ -24,20 +26,26 @@
   "author": "Curran Kelleher",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/datavis-tech/codemirror-ot/issues"
+    "url": "https://github.com/vizhub-core/codemirror-ot/issues"
   },
-  "homepage": "https://github.com/datavis-tech/codemirror-ot#readme",
+  "homepage": "https://github.com/vizhub-core/codemirror-ot#readme",
   "dependencies": {
-    "@datavis-tech/codemirror-6-prerelease": "5",
-    "prettier": "^1.17.0"
+    "@codemirror/state": "^0.20.0",
+    "diff-match-patch": "^1.0.5"
   },
   "devDependencies": {
-    "eslint": "^5.16.0",
-    "esm": "^3.2.22",
-    "mocha": "^6.1.4",
+    "@codemirror/view": "^0.20.4",
+    "@rollup/plugin-commonjs": "^22.0.0",
+    "@rollup/plugin-node-resolve": "^13.3.0",
+    "eslint": "^8.15.0",
+    "jsdom": "^19.0.0",
+    "json0-ot-diff": "^1.1.2",
+    "mocha": "^10.0.0",
     "ot-json0": "^1.1.0",
-    "rollup": "^1.10.1",
-    "rollup-plugin-commonjs": "^9.3.4",
-    "rollup-plugin-node-resolve": "^4.2.3"
+    "ot-json1": "^1.0.2",
+    "ot-text-unicode": "^4.0.0",
+    "prettier": "^2.6.2",
+    "rollup": "^2.72.1",
+    "sharedb": "^3.0.0"
   }
 }
