@@ -4,10 +4,10 @@
   "description": "Operational Transformation adapter for CodeMirror 6.",
   "main": "dist/codemirror-ot.js",
   "scripts": {
-    "prettier": "prettier --single-quote **/*.js --write",
+    "prettier": "prettier --single-quote {*.js,**/*.js} --write",
     "lint": "eslint .",
     "build": "rollup -c rollup.config.js",
-    "test": "mocha -r esm test/*",
+    "test": "npm run build && NODE_OPTIONS=--enable-source-maps mocha dist/test",
     "prepublishOnly": "npm run build && npm run test",
     "postpublish": "git push && git push --tags"
   },
@@ -28,15 +28,14 @@
   },
   "homepage": "https://github.com/datavis-tech/codemirror-ot#readme",
   "dependencies": {
-    "@datavis-tech/codemirror-6-prerelease": "5",
-    "prettier": "^1.17.0"
+    "@codemirror/state": "^0.19.9"
   },
   "devDependencies": {
-    "eslint": "^5.16.0",
-    "esm": "^3.2.22",
-    "mocha": "^6.1.4",
+    "eslint": "^8.12.0",
+    "mocha": "^9.2.2",
     "ot-json0": "^1.1.0",
-    "rollup": "^1.10.1",
+    "prettier": "^2.6.1",
+    "rollup": "^2.70.1",
     "rollup-plugin-commonjs": "^9.3.4",
     "rollup-plugin-node-resolve": "^4.2.3"
   }

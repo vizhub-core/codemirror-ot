@@ -1,13 +1,30 @@
-import commonjs from "rollup-plugin-commonjs";
-import nodeResolve from "rollup-plugin-node-resolve";
+import commonjs from 'rollup-plugin-commonjs';
+import nodeResolve from 'rollup-plugin-node-resolve';
 
-export default {
-  external: ["@datavis-tech/codemirror-6-prerelease"],
-  input: "./src/index.js",
-  output: {
-    format: "cjs",
-    file: "./dist/codemirror-ot.js",
-    sourcemap: true
-  },
-  plugins: [nodeResolve(), commonjs()]
+const external = ['@codemirror/state', 'assert', 'ot-json0' ];
+const output = {
+  format: 'cjs',
+  sourcemap: true,
 };
+const plugins = [nodeResolve(), commonjs()];
+
+export default [
+  {
+    external,
+    input: './src/index.js',
+    output: { ...output, file: './dist/codemirror-ot.js' },
+    plugins,
+  },
+  {
+    external,
+    input: './test/extension.js',
+    output: { ...output, file: './dist/test/extension.js' },
+    plugins,
+  },
+  {
+    external,
+    input: './test/translation.js',
+    output: { ...output, file: './dist/test/translation.js' },
+    plugins,
+  },
+];

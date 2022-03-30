@@ -11,5 +11,5 @@ export const ot = (path, emitOps) =>
       }
       return state;
     },
-    debugName: 'ot'
+    debugName: 'ot',
   }).extension;

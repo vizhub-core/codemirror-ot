@@ -1,4 +1,4 @@
-const changeToOps = (path, transaction) => change => {
+const changeToOps = (path, transaction) => (change) => {
   const ops = [];
   const p = path.concat([change.from]);
 
@@ -6,7 +6,7 @@ const changeToOps = (path, transaction) => change => {
   if (change.from !== change.to) {
     ops.push({
       p,
-      sd: transaction.startState.doc.slice(change.from, change.to)
+      sd: transaction.startState.doc.slice(change.from, change.to),
     });
   }
 
@@ -15,7 +15,7 @@ const changeToOps = (path, transaction) => change => {
   if (joined.length) {
     ops.push({
       p,
-      si: joined
+      si: joined,
     });
   }
   return ops;
