@@ -28,12 +28,16 @@
   },
   "homepage": "https://github.com/datavis-tech/codemirror-ot#readme",
   "dependencies": {
-    "@codemirror/state": "^0.19.9"
+    "@codemirror/state": "^0.19.9",
+    "diff-match-patch": "^1.0.5"
   },
   "devDependencies": {
     "eslint": "^8.12.0",
+    "json0-ot-diff": "^1.1.2",
     "mocha": "^9.2.2",
     "ot-json0": "^1.1.0",
+    "ot-json1": "^1.0.2",
+    "ot-text-unicode": "^4.0.0",
     "prettier": "^2.6.1",
     "rollup": "^2.70.1",
     "rollup-plugin-commonjs": "^9.3.4",

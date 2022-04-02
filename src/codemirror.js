@@ -5,4 +5,5 @@ export {
   StateField,
   Transaction,
   ChangeDesc,
+  ChangeSet,
 } from '@codemirror/state';
