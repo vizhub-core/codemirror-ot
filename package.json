@@ -32,7 +32,9 @@
     "diff-match-patch": "^1.0.5"
   },
   "devDependencies": {
+    "@codemirror/view": "^0.19.48",
     "eslint": "^8.12.0",
+    "jsdom": "^19.0.0",
     "json0-ot-diff": "^1.1.2",
     "mocha": "^9.2.2",
     "ot-json0": "^1.1.0",
@@ -41,6 +43,7 @@
     "prettier": "^2.6.1",
     "rollup": "^2.70.1",
     "rollup-plugin-commonjs": "^9.3.4",
-    "rollup-plugin-node-resolve": "^4.2.3"
+    "rollup-plugin-node-resolve": "^4.2.3",
+    "sharedb": "^2.2.5"
   }
 }

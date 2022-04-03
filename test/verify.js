@@ -5,7 +5,8 @@ import textUnicode from 'ot-text-unicode';
 import otDiff from 'json0-ot-diff';
 import jsondiff from 'json0-ot-diff';
 import diffMatchPatch from 'diff-match-patch';
-import { EditorState, ChangeSet } from '../src/codemirror';
+import { EditorState, ChangeSet } from '@codemirror/state';
+import { EditorView } from '@codemirror/view';
 import {
   changesToOpJSON0,
   changesToOpJSON1,
