@@ -13,19 +13,23 @@ export const json1Sync = ({ shareDBDoc, path = [] }) =>
       constructor(view) {
         this.view = view;
         this.handleOp = (op) => {
-          this.submittingOp = true;
-          view.dispatch({ changes: opToChangesJSON1(op) });
-          this.submittingOp = false;
+          if (!this.submittingOp) {
+            this.dispatching = true;
+            view.dispatch({ changes: opToChangesJSON1(op) });
+            this.dispatching = false;
+          }
         };
         shareDBDoc.on('op', this.handleOp);
       }
 
       // CodeMirror --> ShareDB
       update(update) {
-        if (update.docChanged && !this.submittingOp) {
+        if (update.docChanged && !this.dispatching) {
+          this.submittingOp = true;
           shareDBDoc.submitOp(
             changesToOpJSON1(path, update.changes, this.view.state.doc)
           );
+          this.submittingOp = false;
         }
       }
 

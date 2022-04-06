@@ -4,18 +4,24 @@ import { EditorState, ChangeSet } from '@codemirror/state';
 import { EditorView, ViewPlugin } from '@codemirror/view';
 import { JSDOM } from 'jsdom';
 
+import json1 from 'ot-json1';
+import ShareDB from 'sharedb';
+
+ShareDB.types.register(json1.type);
+
 // Gets a value at a path in a ShareDB Doc.
 const getAtPath = (shareDBDoc, path) =>
   path.reduce((accumulator, key) => accumulator[key], shareDBDoc.data);
 
 // Creates a new CodeMirror EditorView with the json1Sync extension set up.
-const createEditor = ({ shareDBDoc, path, additionalExtensions = [] }) =>
-  new EditorView({
+const createEditor = ({ shareDBDoc, path, additionalExtensions = [] }) => {
+  return new EditorView({
     state: EditorState.create({
       doc: getAtPath(shareDBDoc, path),
       extensions: [json1Sync({ shareDBDoc, path }), ...additionalExtensions],
     }),
   });
+};
 
 // Set up stuff in Node so that EditorView works.
 // Inspired by https://github.com/yjs/y-codemirror.next/blob/main/test/test.node.cjs
@@ -107,6 +113,111 @@ export const testIntegration = () => {
       // back into ShareDB.
       assert.equal(submittedOp, undefined);
     });
+  });
+
+  describe('Real ShareDB', () => {
+    // Create initial document then fire callback
+    it('CodeMirror --> ShareDB', (done) => {
+      const backend = new ShareDB();
+      const connection = backend.connect();
+      const shareDBDoc = connection.get('testCollection', 'testDocId');
+      shareDBDoc.create(
+        {
+          content: { files: { 2432: { text: 'Hello World' } } },
+        },
+        json1.type.uri,
+        () => {
+          shareDBDoc.on('op', (op) => {
+            assert.deepEqual(op, [
+              'content',
+              'files',
+              '2432',
+              'text',
+              { es: [5, '-', { d: '-' }] },
+            ]);
+            done();
+          });
+
+          shareDBDoc.subscribe(() => {
+            const editor = createEditor({
+              shareDBDoc,
+              path: ['content', 'files', '2432', 'text'],
+            });
+            editor.dispatch({ changes: [{ from: 5, to: 6, insert: '-' }] });
+          });
+        }
+      );
+    });
+    it('ShareDB --> CodeMirror', (done) => {
+      const backend = new ShareDB();
+      const connection = backend.connect();
+      const shareDBDoc = connection.get('testCollection', 'testDocId');
+      const text = 'Hello World';
+      shareDBDoc.create(
+        {
+          content: { files: { 2432: { text } } },
+        },
+        json1.type.uri,
+        () => {
+          shareDBDoc.subscribe(() => {
+            const editor = createEditor({
+              shareDBDoc,
+              path: ['content', 'files', '2432', 'text'],
+              additionalExtensions: [
+                ViewPlugin.fromClass(
+                  class {
+                    update(update) {
+                      // verify that the remote op was translated to a CodeMirror change
+                      // and dispatched to the editor view.
+                      assert.deepEqual(
+                        update.changes.toJSON(),
+                        ChangeSet.of(
+                          [{ from: 5, to: 6, insert: '-' }],
+                          text.length
+                        ).toJSON()
+                      );
+
+                      done();
+                    }
+                  }
+                ),
+              ],
+            });
+            // Simulate ShareDB receiving a remote op.
+            //console.log(shareDBDoc.data)
+            shareDBDoc.submitOp([
+              'content',
+              'files',
+              '2432',
+              'text',
+              { es: [5, '-', { d: '-' }] },
+            ]);
+          });
+        }
+      );
+    });
+    //  const backend = new ShareDB();
+    //  const connection = backend.connect();
+    //  const shareDBDoc = connection.get('testCollection', 'testDocId');
+    //  const text = 'Hello World';
+    //  shareDBDoc.create(
+    //    {
+    //      content: { files: { 2432: { text } } },
+    //    },
+    //    json1.type.uri,
+    //    () => {
+    //      shareDBDoc.subscribe(() => {
+    //        let receiveOp;
+    //        let submittedOp;
+    //        let changes;
+    //        console.log(shareDBDoc)
+    //        console.log(shareDBDoc.data)
+    //        console.log(getAtPath(shareDBDoc,['content', 'files', '2432', 'text']))
+    //      });
+    //    }
+    //  );
+
+    //});
   });
 
   // TODO test for degenerate ops

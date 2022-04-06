@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/datavis-tech/codemirror-ot.git"
+    "url": "git+https://github.com/vizhub-core/codemirror-ot.git"
   },
   "keywords": [
     "OT",

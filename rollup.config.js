@@ -7,6 +7,7 @@ const external = [
   'ot-json0',
   'ot-json1',
   'jsdom',
+  'sharedb',
 ];
 const output = {
   format: 'cjs',
