@@ -25,9 +25,9 @@
   "author": "Curran Kelleher",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/datavis-tech/codemirror-ot/issues"
+    "url": "https://github.com/vizhub-core/codemirror-ot/issues"
   },
-  "homepage": "https://github.com/datavis-tech/codemirror-ot#readme",
+  "homepage": "https://github.com/vizhub-core/codemirror-ot#readme",
   "dependencies": {
     "@codemirror/state": "^0.19.9",
     "diff-match-patch": "^1.0.5"

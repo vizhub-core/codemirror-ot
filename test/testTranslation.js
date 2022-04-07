@@ -82,6 +82,16 @@ export const testTranslation = () => {
         opJSON1: json1.editOp([], 'text-unicode', textUnicode.remove(0, 'd')),
       });
     });
+    // TODO
+    //describe.only('only character delete with CM6 change from interaction', () => {
+    //  verify({
+    //    before: 'd',
+    //    after: '',
+    //    changes: [[1]],
+    //    opJSON0: [{ p: [0], sd: 'd' }],
+    //    opJSON1: json1.editOp([], 'text-unicode', textUnicode.remove(0, 'd')),
+    //  });
+    //});
   });
   describe('string replacement', () => {
     describe('single character replacement mid-string', () => {

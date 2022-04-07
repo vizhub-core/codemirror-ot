@@ -83,6 +83,9 @@ export const verify = (options) => {
   it('changesToOpJSON0', () => {
     const state = EditorState.create({ doc: atPath(before, path) });
     const changeSet = ChangeSet.of(changes, before.length);
+    //console.log();
+    //console.log(changes);
+    //console.log(JSON.stringify(changeSet.toJSON()));
     assert.deepEqual(changesToOpJSON0(path, changeSet, state.doc), opJSON0);
   });
 

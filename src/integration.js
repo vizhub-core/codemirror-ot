@@ -17,8 +17,10 @@ export const json1Sync = ({ shareDBDoc, path = [], debug = false }) =>
             this.lock = true;
             if (debug) {
               console.log('Received op from ShareDB');
-              console.log('  ' + JSON.stringify(op));
-              console.log('  ' + JSON.stringify(opToChangesJSON1(op)));
+              console.log('  op: ' + JSON.stringify(op));
+              console.log(
+                '  generated changes: ' + JSON.stringify(opToChangesJSON1(op))
+              );
             }
             view.dispatch({ changes: opToChangesJSON1(op) });
             this.lock = false;
@@ -33,7 +35,26 @@ export const json1Sync = ({ shareDBDoc, path = [], debug = false }) =>
           this.lock = true;
           if (debug) {
             console.log('Received change from CodeMirror');
-            console.log('  ' + JSON.stringify(update.changes));
+            console.log('  changes:' + JSON.stringify(update.changes.toJSON()));
+            console.log(
+              '  iterChanges:' + JSON.stringify(update.changes.toJSON())
+            );
+            update.changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
+              console.log(
+                '    ' +
+                  JSON.stringify({
+                    fromA,
+                    toA,
+                    fromB,
+                    toB,
+                    inserted: inserted.inserted.sliceString(
+                      0,
+                      inserted.length,
+                      '\n'
+                    ),
+                  })
+              );
+            });
             console.log(
               '  ' +
                 JSON.stringify(

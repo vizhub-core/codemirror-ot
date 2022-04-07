@@ -11,9 +11,14 @@ export const changesToOpJSON0 = (path, changeSet, doc) => {
   const op = [];
   changeSet.iterChanges((fromA, toA, fromB, toB, inserted) => {
     const p = path.concat([fromA]);
+    //console.log({ fromA, toA, fromB, toB, inserted });
 
     // String deletion
     if (fromA !== toA) {
+      //console.log({
+      //  p,
+      //  sd: doc.sliceString(fromA, toA),
+      //});
       op.push({
         p,
         sd: doc.sliceString(fromA, toA),
@@ -33,6 +38,7 @@ export const changesToOpJSON0 = (path, changeSet, doc) => {
     // string insertion op component.
   });
 
+  //console.log(JSON.stringify(op));
   return op;
 };
 
