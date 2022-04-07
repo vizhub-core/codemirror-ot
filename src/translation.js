@@ -11,7 +11,6 @@ export const changesToOpJSON0 = (path, changeSet, doc) => {
   const op = [];
   changeSet.iterChanges((fromA, toA, fromB, toB, inserted) => {
     const p = path.concat([fromA]);
-    //console.log({ fromA, toA, fromB, toB, inserted });
 
     // String deletion
     if (fromA !== toA) {

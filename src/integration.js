@@ -36,9 +36,7 @@ export const json1Sync = ({ shareDBDoc, path = [], debug = false }) =>
           if (debug) {
             console.log('Received change from CodeMirror');
             console.log('  changes:' + JSON.stringify(update.changes.toJSON()));
-            console.log(
-              '  iterChanges:' + JSON.stringify(update.changes.toJSON())
-            );
+            console.log('  iterChanges:');
             update.changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
               console.log(
                 '    ' +
@@ -47,23 +45,19 @@ export const json1Sync = ({ shareDBDoc, path = [], debug = false }) =>
                     toA,
                     fromB,
                     toB,
-                    inserted: inserted.inserted.sliceString(
-                      0,
-                      inserted.length,
-                      '\n'
-                    ),
+                    inserted: inserted.sliceString(0, inserted.length, '\n'),
                   })
               );
             });
             console.log(
-              '  ' +
+              '  generated json1 op: ' +
                 JSON.stringify(
-                  changesToOpJSON1(path, update.changes, this.view.state.doc)
+                  changesToOpJSON1(path, update.changes, update.startState.doc)
                 )
             );
           }
           shareDBDoc.submitOp(
-            changesToOpJSON1(path, update.changes, this.view.state.doc)
+            changesToOpJSON1(path, update.changes, update.startState.doc)
           );
           this.lock = false;
         }
