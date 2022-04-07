@@ -131,6 +131,18 @@ export const testTranslation = () => {
         ),
       });
     });
+    describe('entire string replacement', () => {
+      verify({
+        before: 'Hello World',
+        after: 'g',
+        changes: [{ from: 0, to: 11, insert: 'g' }],
+        opJSON0: [
+          { sd: 'Hello World', p: [0] },
+          { si: 'g', p: [0] },
+        ],
+        opJSON1: [{ es: ['g', { d: 'Hello World' }] }],
+      });
+    });
   });
   describe('newlines', () => {
     describe('newline insert', () => {
@@ -140,10 +152,6 @@ export const testTranslation = () => {
         changes: [{ from: 0, to: 0, insert: '\n' }],
         opJSON0: [{ p: [0], si: '\n' }],
         opJSON1: json1.editOp([], 'text-unicode', textUnicode.insert(0, '\n')),
-        //before: '',
-        //after: '\n',
-        //txn: (transaction) => transaction.change(new ChangeDesc(0, 0, ['', ''])),
-        //ops: [{ p: [0], si: '\n' }],
       });
     });
     describe('newline delete', () => {
@@ -154,10 +162,6 @@ export const testTranslation = () => {
         opJSON0: [{ p: [0], sd: '\n' }],
         opJSON1: json1.editOp([], 'text-unicode', textUnicode.remove(0, '\n')),
       });
-      //  before: '\n',
-      //  after: '',
-      //  txn: (transaction) => transaction.change(new ChangeDesc(0, 1, [''])),
-      //  ops: [{ p: [0], sd: '\n' }],
     });
     describe('replace with newlines', () => {
       verify({

@@ -132,6 +132,18 @@ export const opToChangesJSON1 = (op) => {
           to: position + es[2].d.length,
           insert: es[1],
         });
+      } else if (
+        es.length === 2 &&
+        typeof es[0] !== 'number' &&
+        es[1].d !== undefined
+      ) {
+        // String replacement from position 0.
+        // e.g. ["g",{"d":"Hello World"}]
+        changes.push({
+          from: 0,
+          to: es[1].d.length,
+          insert: es[0],
+        });
       } else if (es[es.length - 1].d !== undefined) {
         // String deletion
         // e.g. [5,{"d":" Beautiful "}], [{"d":"d"}]
