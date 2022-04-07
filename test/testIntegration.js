@@ -57,7 +57,7 @@ export const testIntegration = () => {
         'files',
         '2432',
         'text',
-        { es: [5, '-', { d: '-' }] },
+        { es: [5, '-', { d: ' ' }] },
       ]);
     });
     it('ShareDB --> CodeMirror', () => {
@@ -100,7 +100,7 @@ export const testIntegration = () => {
       });
 
       // Simulate ShareDB receiving a remote op.
-      receiveOp([{ es: [5, '-', { d: '-' }] }]);
+      receiveOp([{ es: [5, '-', { d: ' ' }] }]);
 
       // verify that the remote op was translated to a CodeMirror change
       // and dispatched to the editor view.
@@ -133,7 +133,7 @@ export const testIntegration = () => {
               'files',
               '2432',
               'text',
-              { es: [5, '-', { d: '-' }] },
+              { es: [5, '-', { d: ' ' }] },
             ]);
             done();
           });
