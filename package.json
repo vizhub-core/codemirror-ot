@@ -10,7 +10,8 @@
     "build": "rollup -c rollup.config.js",
     "test": "npm run build && NODE_OPTIONS=--enable-source-maps mocha dist/test",
     "prepublishOnly": "npm run build && npm run test",
-    "postpublish": "git push && git push --tags"
+    "postpublish": "git push && git push --tags",
+    "ncu": "ncu -u"
   },
   "repository": {
     "type": "git",
@@ -34,14 +35,14 @@
   },
   "devDependencies": {
     "@codemirror/view": "^0.19.48",
-    "eslint": "^8.12.0",
+    "eslint": "^8.13.0",
     "jsdom": "^19.0.0",
     "json0-ot-diff": "^1.1.2",
     "mocha": "^9.2.2",
     "ot-json0": "^1.1.0",
     "ot-json1": "^1.0.2",
     "ot-text-unicode": "^4.0.0",
-    "prettier": "^2.6.1",
+    "prettier": "^2.6.2",
     "rollup": "^2.70.1",
     "rollup-plugin-commonjs": "^9.3.4",
     "rollup-plugin-node-resolve": "^4.2.3",
