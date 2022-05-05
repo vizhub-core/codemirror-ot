@@ -1,6 +1,13 @@
 import { ViewPlugin } from '@codemirror/view';
 import { changesToOpJSON1, opToChangesJSON1 } from './translation';
 
+const canOpAffectPath = (op, path) => {
+  console.log('TODO canOpAffectPath');
+  console.log(op)
+  console.log(path)
+  return true;
+};
+
 // Inspired by:
 // https://github.com/codemirror/collab/blob/main/src/collab.ts
 // https://codemirror.net/6/examples/collab/
@@ -13,7 +20,9 @@ export const json1Sync = ({ shareDBDoc, path = [], debug = false }) =>
       constructor(view) {
         this.view = view;
         this.handleOp = (op) => {
-          if (!this.lock) {
+          // Ignore ops fired as a result of a change from `update` (this.lock).
+          // Ignore ops that have different paths (canOpAffectPath).
+          if (!this.lock && canOpAffectPath(op, path)) {
             this.lock = true;
             if (debug) {
               console.log('Received op from ShareDB');
@@ -31,7 +40,9 @@ export const json1Sync = ({ shareDBDoc, path = [], debug = false }) =>
 
       // CodeMirror --> ShareDB
       update(update) {
-        if (update.docChanged && !this.lock) {
+        // Ignore updates fired as a result of an op from `handleOp` (this.lock).
+        // Ignore updates that do not change the doc (update.docChanged).
+        if (!this.lock && update.docChanged) {
           this.lock = true;
           if (debug) {
             console.log('Received change from CodeMirror');
