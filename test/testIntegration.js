@@ -201,30 +201,8 @@ export const testIntegration = () => {
               { es: [5, '-', { d: '-' }] },
             ]);
 
-            // TODO add test for ops coming in for an irrelevant path.
-            //            // Simulate ShareDB receiving a remote op
-            //            // that applies to another file
-            //            // (should be ignored).
-            //            shareDBDoc.submitOp(
-            //              [
-            //                'content',
-            //                'files',
-            //                'other',
-            //                'text',
-            //                {"es":[5," Beautiful "]}
-            //              ],
-            //              () => {
-            //                // Simulate ShareDB receiving a remote op
-            //                // that applies to this file.
-            //                shareDBDoc.submitOp([
-            //                  'content',
-            //                  'files',
-            //                  '2432',
-            //                  'text',
-            //                  { es: [5, '-', { d: '-' }] },
-            //                ]);
-            //              }
-            //            );
+            // TODO add test for ops coming in for an irrelevant path
+            // (test the canOpAffectPath invocation).
           });
         }
       );

@@ -14,10 +14,6 @@ export const changesToOpJSON0 = (path, changeSet, doc) => {
 
     // String deletion
     if (fromA !== toA) {
-      //console.log({
-      //  p,
-      //  sd: doc.sliceString(fromA, toA),
-      //});
       op.push({
         p,
         sd: doc.sliceString(fromA, toA),
@@ -37,7 +33,6 @@ export const changesToOpJSON0 = (path, changeSet, doc) => {
     // string insertion op component.
   });
 
-  //console.log(JSON.stringify(op));
   return op;
 };
 
