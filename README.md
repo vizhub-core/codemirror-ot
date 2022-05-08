@@ -1,7 +1,7 @@
 # codemirror-ot
 Real-time collaboration plugin for CodeMirror 6. For background & writeup, see [Medium: Codemirror 6 Experiments](https://medium.com/@currankelleher/codemirror-6-experiments-a3930bf03781).
 
-Recently overhauled (May 2022) to work with the latest CodeMirror 6 APIs and [JSON1](https://github.com/ottypes/json1).
+Recently overhauled (May 2022) to work with the latest CodeMirror 6 APIs and [JSON1](https://github.com/ottypes/json1). A fully functioning collaborative editor that leverages this library can be found in [vizhub-codemirror](https://github.com/vizhub-core/vizhub/tree/main/vizhub-v3/vizhub-codemirror).
 
 At its core this library is a translator between [JSON Operational Transformation](https://github.com/ottypes/json0) and [CodeMirror 6](https://codemirror.net/6/). This is one piece of the puzzle for enabling real-time collaboration on text documents using CodeMirror and [ShareDB](https://github.com/teamwork/sharedb).
 
