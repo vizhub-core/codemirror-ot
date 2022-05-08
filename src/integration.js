@@ -1,10 +1,12 @@
 import { ViewPlugin } from '@codemirror/view';
 import { changesToOpJSON1, opToChangesJSON1 } from './translation';
 
-const canOpAffectPath = (op, path) => {
-  console.log('TODO canOpAffectPath');
-  console.log(op)
-  console.log(path)
+export const canOpAffectPath = (op, path) => {
+  for (let i = 0; i < path.length; i++) {
+    if (path[i] !== op[i]) {
+      return false;
+    }
+  }
   return true;
 };
 
@@ -21,7 +23,7 @@ export const json1Sync = ({ shareDBDoc, path = [], debug = false }) =>
         this.view = view;
         this.handleOp = (op) => {
           // Ignore ops fired as a result of a change from `update` (this.lock).
-          // Ignore ops that have different paths (canOpAffectPath).
+          // Ignore ops that have different, irrelevant, paths (canOpAffectPath).
           if (!this.lock && canOpAffectPath(op, path)) {
             this.lock = true;
             if (debug) {

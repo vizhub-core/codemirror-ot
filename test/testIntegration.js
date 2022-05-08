@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { json1Sync } from '../src/index';
+import { json1Sync, canOpAffectPath } from '../src/index';
 import { EditorState, ChangeSet } from '@codemirror/state';
 import { EditorView, ViewPlugin } from '@codemirror/view';
 import { JSDOM } from 'jsdom';
@@ -100,7 +100,13 @@ export const testIntegration = () => {
       });
 
       // Simulate ShareDB receiving a remote op.
-      receiveOp([{ es: [5, '-', { d: ' ' }] }]);
+      receiveOp([
+        'content',
+        'files',
+        '2432',
+        'text',
+        { es: [5, '-', { d: ' ' }] },
+      ]);
 
       // verify that the remote op was translated to a CodeMirror change
       // and dispatched to the editor view.
@@ -155,7 +161,9 @@ export const testIntegration = () => {
       const text = 'Hello World';
       shareDBDoc.create(
         {
-          content: { files: { 2432: { text } } },
+          content: {
+            files: { 2432: { text }, otherFile: { text: 'HelloWorld' } },
+          },
         },
         json1.type.uri,
         () => {
@@ -192,41 +200,59 @@ export const testIntegration = () => {
               'text',
               { es: [5, '-', { d: '-' }] },
             ]);
+
+            // TODO add test for ops coming in for an irrelevant path.
+            //            // Simulate ShareDB receiving a remote op
+            //            // that applies to another file
+            //            // (should be ignored).
+            //            shareDBDoc.submitOp(
+            //              [
+            //                'content',
+            //                'files',
+            //                'other',
+            //                'text',
+            //                {"es":[5," Beautiful "]}
+            //              ],
+            //              () => {
+            //                // Simulate ShareDB receiving a remote op
+            //                // that applies to this file.
+            //                shareDBDoc.submitOp([
+            //                  'content',
+            //                  'files',
+            //                  '2432',
+            //                  'text',
+            //                  { es: [5, '-', { d: '-' }] },
+            //                ]);
+            //              }
+            //            );
           });
         }
       );
     });
-    //  const backend = new ShareDB();
-    //  const connection = backend.connect();
-    //  const shareDBDoc = connection.get('testCollection', 'testDocId');
-    //  const text = 'Hello World';
-    //  shareDBDoc.create(
-    //    {
-    //      content: { files: { 2432: { text } } },
-    //    },
-    //    json1.type.uri,
-    //    () => {
-    //      shareDBDoc.subscribe(() => {
-    //        let receiveOp;
-    //        let submittedOp;
-    //        let changes;
-    //        console.log(shareDBDoc)
-    //        console.log(shareDBDoc.data)
-    //        console.log(getAtPath(shareDBDoc,['content', 'files', '2432', 'text']))
-    //      });
-    //    }
-    //  );
-
-    //});
   });
+  describe('canOpAffectPath', () => {
+    it('true', () => {
+      const op = [
+        'content',
+        'files',
+        '2432',
+        'text',
+        { es: [5, '-', { d: '-' }] },
+      ];
+      const path = ['content', 'files', '2432', 'text'];
+      assert.deepEqual(canOpAffectPath(op, path), true);
+    });
 
-  // TODO test for degenerate ops
-  //it('should not emit degenerate ops', async () => {
-  //  emittedOps = null;
-  //  state
-  //    .t()
-  //    .change(new ChangeDesc(0, 0, ['']))
-  //    .apply();
-  //  assert.equal(emittedOps, null);
-  //});
+    it('false', () => {
+      const op = [
+        'content',
+        'files',
+        'other-file',
+        'text',
+        { es: [5, '-', { d: '-' }] },
+      ];
+      const path = ['content', 'files', '2432', 'text'];
+      assert.deepEqual(canOpAffectPath(op, path), false);
+    });
+  });
 };
