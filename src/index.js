@@ -5,4 +5,5 @@ export {
   opToChangesJSON1,
 } from './translation';
 
-export { json1Sync, canOpAffectPath } from './integration';
+export { json1Sync } from './integration';
+export { canOpAffectPath } from './canOpAffectPath';
