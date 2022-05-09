@@ -1,6 +1,6 @@
 {
   "name": "codemirror-ot",
-  "version": "3.4.0",
+  "version": "3.5.0",
   "description": "Operational Transformation adapter for CodeMirror 6.",
   "main": "dist/codemirror-ot.js",
   "module": "src/index.js",
