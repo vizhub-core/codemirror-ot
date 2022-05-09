@@ -16,9 +16,7 @@ export const json1Sync = ({ shareDBDoc, path = [], debug = false }) =>
         this.handleOp = (op) => {
           // Ignore ops fired as a result of a change from `update` (this.lock).
           // Ignore ops that have different, irrelevant, paths (canOpAffectPath).
-          if (
-            !this.lock /* TODO bring this back && canOpAffectPath(op, path)*/
-          ) {
+          if (!this.lock && canOpAffectPath(op, path)) {
             this.lock = true;
             if (debug) {
               console.log('Received op from ShareDB');
