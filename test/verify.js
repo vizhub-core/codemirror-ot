@@ -92,7 +92,10 @@ export const verify = (options) => {
   it('changesToOpJSON1', () => {
     const state = EditorState.create({ doc: atPath(before, path) });
     const changeSet = ChangeSet.of(changes, before.length);
-    assert.deepEqual(changesToOpJSON1(path, changeSet, state.doc), opJSON1);
+    assert.deepEqual(
+      changesToOpJSON1(path, changeSet, state.doc, json1, textUnicode),
+      opJSON1
+    );
   });
 
   it('applied changes should match expected text', () => {

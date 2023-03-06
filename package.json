@@ -29,12 +29,12 @@
     "url": "https://github.com/vizhub-core/codemirror-ot/issues"
   },
   "homepage": "https://github.com/vizhub-core/codemirror-ot#readme",
-  "dependencies": {
-    "@codemirror/state": "^6.2.0",
-    "diff-match-patch": "^1.0.5"
+  "peerDependencies": {
+    "@codemirror/view": "^6.9.1",
+    "@codemirror/state": "^6.2.0"
   },
   "devDependencies": {
-    "@codemirror/view": "^6.9.1",
+    "diff-match-patch": "^1.0.5",
     "@rollup/plugin-commonjs": "^24.0.1",
     "@rollup/plugin-node-resolve": "^15.0.1",
     "eslint": "^8.35.0",
@@ -46,6 +46,6 @@
     "ot-text-unicode": "^4.0.0",
     "prettier": "^2.8.4",
     "rollup": "^3.18.0",
-    "sharedb": "^3.2.4"
+    "sharedb": "^3.3.0"
   }
 }

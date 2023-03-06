@@ -1,6 +1,3 @@
-import json1 from 'ot-json1';
-import textUnicode from 'ot-text-unicode';
-
 // This module is able to translate from CodeMirror ChangeSet to OT ops
 // and back, for both json0 and json1 OT types.
 //
@@ -37,7 +34,7 @@ export const changesToOpJSON0 = (path, changeSet, doc) => {
 };
 
 // Converts a CodeMirror ChangeSet to a json1 OT op.
-export const changesToOpJSON1 = (path, changeSet, doc) => {
+export const changesToOpJSON1 = (path, changeSet, doc, json1, textUnicode) => {
   const unicodeOp = [];
 
   // Iterate over all changes in the ChangeSet.

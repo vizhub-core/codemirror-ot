@@ -7,7 +7,13 @@ import { canOpAffectPath } from './canOpAffectPath';
 // https://codemirror.net/6/examples/collab/
 // https://github.com/yjs/y-codemirror.next/blob/main/src/y-sync.js#L107
 // https://github.com/vizhub-core/vizhub/blob/main/vizhub-v2/packages/neoFrontend/src/pages/VizPage/Body/Editor/CodeEditor/CodeArea/CodeAreaCodeMirror5/index.js
-export const json1Sync = ({ shareDBDoc, path = [], debug = false }) =>
+export const json1Sync = ({
+  shareDBDoc,
+  path = [],
+  json1,
+  textUnicode,
+  debug = false,
+}) =>
   ViewPlugin.fromClass(
     class {
       // ShareDB --> CodeMirror
@@ -57,12 +63,24 @@ export const json1Sync = ({ shareDBDoc, path = [], debug = false }) =>
             console.log(
               '  generated json1 op: ' +
                 JSON.stringify(
-                  changesToOpJSON1(path, update.changes, update.startState.doc)
+                  changesToOpJSON1(
+                    path,
+                    update.changes,
+                    update.startState.doc,
+                    json1,
+                    textUnicode
+                  )
                 )
             );
           }
           shareDBDoc.submitOp(
-            changesToOpJSON1(path, update.changes, update.startState.doc)
+            changesToOpJSON1(
+              path,
+              update.changes,
+              update.startState.doc,
+              json1,
+              textUnicode
+            )
           );
           this.lock = false;
         }
