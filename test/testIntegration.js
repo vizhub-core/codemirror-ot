@@ -1,11 +1,11 @@
 import * as assert from 'assert';
-import { json1Sync, canOpAffectPath } from '../src/index';
+import json1 from 'ot-json1';
+import textUnicode from 'ot-text-unicode';
 import { EditorState, ChangeSet } from '@codemirror/state';
 import { EditorView, ViewPlugin } from '@codemirror/view';
 import { JSDOM } from 'jsdom';
-
-import json1 from 'ot-json1';
 import ShareDB from 'sharedb';
+import { json1Sync, canOpAffectPath } from '../src/index';
 
 ShareDB.types.register(json1.type);
 
@@ -34,7 +34,10 @@ const createEditor = ({ shareDBDoc, path, additionalExtensions = [] }) => {
   const view = new EditorView({
     state: EditorState.create({
       doc: getAtPath(shareDBDoc, path),
-      extensions: [json1Sync({ shareDBDoc, path }), ...additionalExtensions],
+      extensions: [
+        json1Sync({ shareDBDoc, path, json1, textUnicode }),
+        ...additionalExtensions,
+      ],
     }),
   });
   return view;
