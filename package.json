@@ -3,12 +3,11 @@
   "version": "3.5.0",
   "description": "Operational Transformation adapter for CodeMirror 6.",
   "main": "dist/codemirror-ot.js",
-  "type": "module",
   "module": "src/index.js",
   "scripts": {
     "prettier": "prettier --single-quote {*.js,**/*.js} --write",
     "lint": "eslint .",
-    "build": "rollup -c rollup.config.js",
+    "build": "rm -rf dist; rollup -c rollup.config.js --bundleConfigAsCjs",
     "test": "npm run build && NODE_OPTIONS=--enable-source-maps mocha dist/test",
     "prepublishOnly": "npm run build && npm run test",
     "postpublish": "git push && git push --tags",
