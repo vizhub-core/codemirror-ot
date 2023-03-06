@@ -25,7 +25,6 @@ const createEditor = ({ shareDBDoc, path, additionalExtensions = [] }) => {
 
 // Set up stuff in Node so that EditorView works.
 // Inspired by https://github.com/yjs/y-codemirror.next/blob/main/test/test.node.cjs
-
 const { window } = new JSDOM('');
 ['window', 'innerWidth', 'innerHeight', 'document', 'MutationObserver'].forEach(
   (name) => {

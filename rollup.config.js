@@ -10,7 +10,7 @@ const external = [
   'sharedb',
 ];
 const output = {
-  format: 'cjs',
+  format: 'esm',
   sourcemap: true,
 };
 const plugins = [nodeResolve(), commonjs()];
