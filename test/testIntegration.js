@@ -13,19 +13,8 @@ ShareDB.types.register(json1.type);
 const getAtPath = (shareDBDoc, path) =>
   path.reduce((accumulator, key) => accumulator[key], shareDBDoc.data);
 
-// Creates a new CodeMirror EditorView with the json1Sync extension set up.
-const createEditor = ({ shareDBDoc, path, additionalExtensions = [] }) => {
-  return new EditorView({
-    state: EditorState.create({
-      doc: getAtPath(shareDBDoc, path),
-      extensions: [json1Sync({ shareDBDoc, path }), ...additionalExtensions],
-    }),
-  });
-};
-
 // Set up stuff in Node so that EditorView works.
 // Inspired by https://github.com/yjs/y-codemirror.next/blob/main/test/test.node.cjs
-
 const { window } = new JSDOM('');
 ['window', 'innerWidth', 'innerHeight', 'document', 'MutationObserver'].forEach(
   (name) => {
@@ -33,8 +22,23 @@ const { window } = new JSDOM('');
   }
 );
 
-global.requestAnimationFrame = (f) => setTimeout(f, 0);
+// Make these available where CodeMirror looks for them.
+// See https://github.com/codemirror/view/blob/main/src/editorview.ts#L119
+// this.win is used for requestAnimationFrame
+global.window.requestAnimationFrame = (f) => setTimeout(f, 0);
+// this.win is _not_ used for cancelAnimationFrame
 global.cancelAnimationFrame = () => {};
+
+// Creates a new CodeMirror EditorView with the json1Sync extension set up.
+const createEditor = ({ shareDBDoc, path, additionalExtensions = [] }) => {
+  const view = new EditorView({
+    state: EditorState.create({
+      doc: getAtPath(shareDBDoc, path),
+      extensions: [json1Sync({ shareDBDoc, path }), ...additionalExtensions],
+    }),
+  });
+  return view;
+};
 
 export const testIntegration = () => {
   describe('Mocked ShareDB', () => {
