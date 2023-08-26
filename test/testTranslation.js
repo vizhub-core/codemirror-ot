@@ -276,12 +276,8 @@ export const testTranslation = () => {
           "text",
           { es: [2, "doctype", { d: "DOCTYPE" }, 149, { d: "  " }, 23, "\n"] },
         ],
-        // changes: [
-        //   { from: 2, to: 9, insert: "doctype" },
-        //   { from: 158, to: 160 },
-        //   { from: 181, to: 181, insert: "\n" },
-        // ], // from json0
-        // changes: [{"from":2,"to":2,"insert":"\n"}], // from json1
+        // changes: [{"from":2,"to":9,"insert":"doctype"},{"from":158,"to":160},{"from":181,"to":181,"insert":"\n"}], // from json0
+        // changes: [{"from":2,"to":9,"insert":"doctype"},{"from":158,"to":160},{"from":183,"to":183,"insert":"\n"}], // from json1
       });
     });
   });
