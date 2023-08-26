@@ -6,28 +6,22 @@
 // Converts a CodeMirror ChangeSet to a json0 OT op.
 export const changesToOpJSON0 = (path, changeSet, doc) => {
   const op = [];
+  let offset = 0; // Used to track the position offset based on previous operations
   changeSet.iterChanges((fromA, toA, fromB, toB, inserted) => {
-    const p = path.concat([fromA]);
+    const deletedText = doc.sliceString(fromA, toA, "\n");
+    const insertedText = inserted.sliceString(0, inserted.length, "\n");
+    const p = path.concat([fromA + offset]);
 
-    // String deletion
-    if (fromA !== toA) {
-      op.push({
-        p,
-        sd: doc.sliceString(fromA, toA),
-      });
+    if (deletedText) {
+      op.push({ p, sd: deletedText });
     }
 
-    // String insertion
-    if (inserted.length > 0) {
-      op.push({
-        p,
-        si: inserted.sliceString(0, inserted.length, "\n"),
-      });
+    if (insertedText) {
+      op.push({ p, si: insertedText });
     }
 
-    // Note: String replacement in json0 is represented by a
-    // string deletion op component followed by a
-    // string insertion op component.
+    offset += insertedText.length;
+    offset -= deletedText.length;
   });
 
   return op;
@@ -40,21 +34,19 @@ export const changesToOpJSON0 = (path, changeSet, doc) => {
 // This was also the approach taken in the YJS CodeMirror integration.
 // See https://github.com/yjs/y-codemirror.next/blob/main/src/y-sync.js#L141
 export const changesToOpJSON1 = (path, changeSet, doc, json1, textUnicode) => {
-  const unicodeOp = [];
-
-  // Used to track the position offset based on previous operations
+  let op = [];
   let offset = 0;
 
   changeSet.iterChanges((fromA, toA, fromB, toB, inserted) => {
     const deletedText = doc.sliceString(fromA, toA, "\n");
     const insertedText = inserted.sliceString(0, inserted.length, "\n");
 
-    if (deletedText.length > 0) {
-      unicodeOp.push(textUnicode.remove(fromA + offset, deletedText));
+    if (deletedText) {
+      op.push(textUnicode.remove(fromA + offset, deletedText));
     }
 
-    if (insertedText.length > 0) {
-      unicodeOp.push(textUnicode.insert(fromA + offset, insertedText));
+    if (insertedText) {
+      op.push(textUnicode.insert(fromA + offset, insertedText));
     }
 
     offset += insertedText.length;
@@ -64,9 +56,9 @@ export const changesToOpJSON1 = (path, changeSet, doc, json1, textUnicode) => {
   // Composes string deletion followed by string insertion
   // to produce a "new kind" of op component that represents
   // a string replacement (using only a single op component).
-  const unicodeOpComposed = unicodeOp.reduce(textUnicode.type.compose);
+  op = op.reduce(textUnicode.type.compose);
 
-  return json1.editOp(path, "text-unicode", unicodeOpComposed);
+  return json1.editOp(path, "text-unicode", op);
 };
 
 export const opToChangesJSON0 = (op) => {
