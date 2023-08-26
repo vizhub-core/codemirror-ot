@@ -34,34 +34,31 @@ export const changesToOpJSON0 = (path, changeSet, doc) => {
 };
 
 // Converts a CodeMirror ChangeSet to a json1 OT op.
+// Iterate over all changes in the ChangeSet.
+// See https://codemirror.net/docs/ref/#state.ChangeSet.iterChanges
+// See https://codemirror.net/docs/ref/#state.Text.sliceString
+// This was also the approach taken in the YJS CodeMirror integration.
+// See https://github.com/yjs/y-codemirror.next/blob/main/src/y-sync.js#L141
 export const changesToOpJSON1 = (path, changeSet, doc, json1, textUnicode) => {
   const unicodeOp = [];
 
-  // Iterate over all changes in the ChangeSet.
-  // See https://codemirror.net/6/docs/ref/#state.ChangeSet.iterChanges
-  // See https://codemirror.net/docs/ref/#state.Text.sliceString
-  // This was also the approach taken in the YJS CodeMirror integration.
-  // See https://github.com/yjs/y-codemirror.next/blob/main/src/y-sync.js#L141
-
-  // `offset`
-  //  - Used to track the position offset based on previous operations
-  //  - This is needed to support multi-part ops, such as those generated
-  //    by running Prettier on a code file then using the resulting diff
+  // Used to track the position offset based on previous operations
   let offset = 0;
+
   changeSet.iterChanges((fromA, toA, fromB, toB, inserted) => {
-    // String deletion
-    if (fromA !== toA) {
-      const deletedText = doc.sliceString(fromA, toA);
+    const deletedText = doc.sliceString(fromA, toA, "\n");
+    const insertedText = inserted.sliceString(0, inserted.length, "\n");
+
+    if (deletedText.length > 0) {
       unicodeOp.push(textUnicode.remove(fromA + offset, deletedText));
-      offset -= toA - fromA;
     }
 
-    // String insertion
     if (insertedText.length > 0) {
-      const insertedText = inserted.sliceString(0, inserted.length, "\n");
       unicodeOp.push(textUnicode.insert(fromA + offset, insertedText));
-      offset += insertedText.length;
     }
+
+    offset += insertedText.length;
+    offset -= deletedText.length;
   });
 
   // Composes string deletion followed by string insertion
