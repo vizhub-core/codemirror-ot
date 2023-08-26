@@ -21,7 +21,7 @@ export const changesToOpJSON0 = (path, changeSet, doc) => {
     if (inserted.length > 0) {
       op.push({
         p,
-        si: inserted.sliceString(0, inserted.length, '\n'),
+        si: inserted.sliceString(0, inserted.length, "\n"),
       });
     }
 
@@ -56,7 +56,7 @@ export const changesToOpJSON1 = (path, changeSet, doc, json1, textUnicode) => {
 
     // String insertion
     if (inserted.length > 0) {
-      const insertedStr = inserted.sliceString(0, inserted.length, '\n');
+      const insertedStr = inserted.sliceString(0, inserted.length, "\n");
       unicodeOp.push(textUnicode.insert(fromA, insertedStr));
     }
   });
@@ -66,7 +66,7 @@ export const changesToOpJSON1 = (path, changeSet, doc, json1, textUnicode) => {
   // a string replacement (using only a single op component).
   const unicodeOpComposed = unicodeOp.reduce(textUnicode.type.compose);
 
-  return json1.editOp(path, 'text-unicode', unicodeOpComposed);
+  return json1.editOp(path, "text-unicode", unicodeOpComposed);
 };
 
 // Converts a json0 OT op to a CodeMirror ChangeSet.
@@ -114,43 +114,136 @@ export const opToChangesJSON1 = (op) => {
   for (const component of op) {
     const { es } = component;
     if (es !== undefined) {
-      const position = es.length === 1 ? 0 : es[0];
+      let position = 0;
 
-      if (es.length === 3) {
-        // String replacement
-        // e.g. [5,"-",{"d":" "}]
-        changes.push({
-          from: position,
-          to: position + es[2].d.length,
-          insert: es[1],
-        });
-      } else if (
-        es.length === 2 &&
-        typeof es[0] !== 'number' &&
-        es[1].d !== undefined
-      ) {
-        // String replacement from position 0.
-        // e.g. ["g",{"d":"Hello World"}]
-        changes.push({
-          from: 0,
-          to: es[1].d.length,
-          insert: es[0],
-        });
-      } else if (es[es.length - 1].d !== undefined) {
-        // String deletion
-        // e.g. [5,{"d":" Beautiful "}], [{"d":"d"}]
-        changes.push({
-          from: position,
-          to: position + es[es.length - 1].d.length,
-        });
-      } else {
-        // String insertion
-        // e.g. [5," Beautiful "], ["d"],
-        changes.push({
-          from: position,
-          to: position,
-          insert: es[es.length - 1],
-        });
+      // From https://github.com/ottypes/text-unicode#operation-components
+      // Each operation is a list of components.
+      // The components describe a traversal of the document, modifying the document along the way.
+      // Each component is one of:
+      // - **Number N**: Skip (retain) the next *N* characters in the document
+      // - **"str"**: Insert *"str"* at the current position in the document
+      // - **{d:N}**: Delete *N* characters at the current position in the document
+      // - **{d:"str"}**: Delete the string *"str"* at the current position in the document.
+
+      // This code works for simple cases where there is only one string edit.
+      // if (es.length === 3) {
+      //   // String replacement
+      //   // e.g. [5,"-",{"d":" "}]
+      //   changes.push({
+      //     from: position,
+      //     to: position + es[2].d.length,
+      //     insert: es[1],
+      //   });
+      // } else if (
+      //   es.length === 2 &&
+      //   typeof es[0] !== "number" &&
+      //   es[1].d !== undefined
+      // ) {
+      //   // String replacement from position 0.
+      //   // e.g. ["g",{"d":"Hello World"}]
+      //   changes.push({
+      //     from: 0,
+      //     to: es[1].d.length,
+      //     insert: es[0],
+      //   });
+      // } else if (es[es.length - 1].d !== undefined) {
+      //   // String deletion
+      //   // e.g. [5,{"d":" Beautiful "}], [{"d":"d"}]
+      //   changes.push({
+      //     from: position,
+      //     to: position + es[es.length - 1].d.length,
+      //   });
+      // } else {
+      //   // String insertion
+      //   // e.g. [5," Beautiful "], ["d"],
+      //   changes.push({
+      //     from: position,
+      //     to: position,
+      //     insert: es[es.length - 1],
+      //   });
+      // }
+
+      // for (let i = 0; i < es.length; i++) {
+      //   const component = es[i];
+
+      //   if (typeof component === "number") {
+      //     // It's a skip/retain operation.
+      //     position += component;
+      //   } else if (typeof component === "string") {
+      //     // It's an insertion.
+      //     changes.push({
+      //       from: position,
+      //       to: position,
+      //       insert: component,
+      //     });
+      //   } else if (component && component.d !== undefined) {
+      //     if (typeof component.d === "number") {
+      //       // It's a deletion by count.
+      //       changes.push({
+      //         from: position,
+      //         to: position + component.d,
+      //       });
+      //       position += component.d; // Important! Move the position forward by the number of characters deleted.
+      //     } else if (typeof component.d === "string") {
+      //       // It's a deletion of a specific string.
+      //       changes.push({
+      //         from: position,
+      //         to: position + component.d.length,
+      //       });
+      //       position += component.d.length; // Move the position forward by the length of the string deleted.
+      //     }
+      //   }
+      // }
+
+      for (let i = 0; i < es.length; i++) {
+        const component = es[i];
+
+        if (typeof component === "number") {
+          // It's a skip/retain operation.
+          position += component;
+        } else if (typeof component === "string") {
+          // Check if the next component is a deletion, indicating a replacement.
+          if (
+            es[i + 1] &&
+            typeof es[i + 1] === "object" &&
+            es[i + 1].d !== undefined
+          ) {
+            let deletionLength =
+              typeof es[i + 1].d === "number"
+                ? es[i + 1].d
+                : es[i + 1].d.length;
+            changes.push({
+              from: position,
+              to: position + deletionLength,
+              insert: component,
+            });
+            position += deletionLength;
+            i++; // Skip the next component since we've already handled it.
+          } else {
+            // It's a regular insertion.
+            changes.push({
+              from: position,
+              to: position,
+              insert: component,
+            });
+          }
+        } else if (component && component.d !== undefined) {
+          if (typeof component.d === "number") {
+            // It's a deletion by count.
+            changes.push({
+              from: position,
+              to: position + component.d,
+            });
+            position += component.d; // Move the position forward by the number of characters deleted.
+          } else if (typeof component.d === "string") {
+            // It's a deletion of a specific string.
+            changes.push({
+              from: position,
+              to: position + component.d.length,
+            });
+            position += component.d.length; // Move the position forward by the length of the string deleted.
+          }
+        }
       }
     }
   }

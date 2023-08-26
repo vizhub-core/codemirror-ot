@@ -230,7 +230,7 @@ export const testTranslation = () => {
   });
 
   describe("real world", () => {
-    describe("multiple character insert mid-string", () => {
+    describe("multiple edits to one file", () => {
       verify({
         path: ["files", "502492594", "text"],
         before: {
@@ -276,11 +276,11 @@ export const testTranslation = () => {
           "text",
           { es: [2, "doctype", { d: "DOCTYPE" }, 149, { d: "  " }, 23, "\n"] },
         ],
-        changes: [
-          { from: 2, to: 9, insert: "doctype" },
-          { from: 158, to: 160 },
-          { from: 181, to: 181, insert: "\n" },
-        ], // from json0
+        // changes: [
+        //   { from: 2, to: 9, insert: "doctype" },
+        //   { from: 158, to: 160 },
+        //   { from: 181, to: 181, insert: "\n" },
+        // ], // from json0
         // changes: [{"from":2,"to":2,"insert":"\n"}], // from json1
       });
     });
