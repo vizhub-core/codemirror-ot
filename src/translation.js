@@ -8,8 +8,8 @@ export const changesToOpJSON0 = (path, changeSet, doc) => {
   const op = [];
   let offset = 0; // Used to track the position offset based on previous operations
   changeSet.iterChanges((fromA, toA, fromB, toB, inserted) => {
-    const deletedText = doc.sliceString(fromA, toA, "\n");
-    const insertedText = inserted.sliceString(0, inserted.length, "\n");
+    const deletedText = doc.sliceString(fromA, toA, '\n');
+    const insertedText = inserted.sliceString(0, inserted.length, '\n');
     const p = path.concat([fromA + offset]);
 
     if (deletedText) {
@@ -38,8 +38,8 @@ export const changesToOpJSON1 = (path, changeSet, doc, json1, textUnicode) => {
   let offset = 0;
 
   changeSet.iterChanges((fromA, toA, fromB, toB, inserted) => {
-    const deletedText = doc.sliceString(fromA, toA, "\n");
-    const insertedText = inserted.sliceString(0, inserted.length, "\n");
+    const deletedText = doc.sliceString(fromA, toA, '\n');
+    const insertedText = inserted.sliceString(0, inserted.length, '\n');
 
     if (deletedText) {
       op.push(textUnicode.remove(fromA + offset, deletedText));
@@ -58,7 +58,7 @@ export const changesToOpJSON1 = (path, changeSet, doc, json1, textUnicode) => {
   // a string replacement (using only a single op component).
   op = op.reduce(textUnicode.type.compose);
 
-  return json1.editOp(path, "text-unicode", op);
+  return json1.editOp(path, 'text-unicode', op);
 };
 
 export const opToChangesJSON0 = (op) => {
@@ -131,18 +131,18 @@ export const opToChangesJSON1 = (op) => {
       for (let i = 0; i < es.length; i++) {
         const component = es[i];
 
-        if (typeof component === "number") {
+        if (typeof component === 'number') {
           // It's a skip/retain operation.
           position += component;
-        } else if (typeof component === "string") {
+        } else if (typeof component === 'string') {
           // Check if the next component is a deletion, indicating a replacement.
           if (
             es[i + 1] &&
-            typeof es[i + 1] === "object" &&
+            typeof es[i + 1] === 'object' &&
             es[i + 1].d !== undefined
           ) {
             let deletionLength =
-              typeof es[i + 1].d === "number"
+              typeof es[i + 1].d === 'number'
                 ? es[i + 1].d
                 : es[i + 1].d.length;
             changes.push({
@@ -161,14 +161,14 @@ export const opToChangesJSON1 = (op) => {
             });
           }
         } else if (component && component.d !== undefined) {
-          if (typeof component.d === "number") {
+          if (typeof component.d === 'number') {
             // It's a deletion by count.
             changes.push({
               from: position,
               to: position + component.d,
             });
             position += component.d; // Move the position forward by the number of characters deleted.
-          } else if (typeof component.d === "string") {
+          } else if (typeof component.d === 'string') {
             // It's a deletion of a specific string.
             changes.push({
               from: position,

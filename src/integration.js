@@ -28,7 +28,7 @@ export const json1Sync = ({
               console.log('Received op from ShareDB');
               console.log('  op: ' + JSON.stringify(op));
               console.log(
-                '  generated changes: ' + JSON.stringify(opToChangesJSON1(op))
+                '  generated changes: ' + JSON.stringify(opToChangesJSON1(op)),
               );
             }
             view.dispatch({ changes: opToChangesJSON1(op) });
@@ -57,7 +57,7 @@ export const json1Sync = ({
                     fromB,
                     toB,
                     inserted: inserted.sliceString(0, inserted.length, '\n'),
-                  })
+                  }),
               );
             });
             console.log(
@@ -68,9 +68,9 @@ export const json1Sync = ({
                     update.changes,
                     update.startState.doc,
                     json1,
-                    textUnicode
-                  )
-                )
+                    textUnicode,
+                  ),
+                ),
             );
           }
           shareDBDoc.submitOp(
@@ -79,8 +79,8 @@ export const json1Sync = ({
               update.changes,
               update.startState.doc,
               json1,
-              textUnicode
-            )
+              textUnicode,
+            ),
           );
           this.lock = false;
         }
@@ -90,5 +90,5 @@ export const json1Sync = ({
       destroy() {
         shareDBDoc.off('op', this.handleOp);
       }
-    }
+    },
   );
