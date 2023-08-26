@@ -39,35 +39,29 @@ export const changesToOpJSON1 = (path, changeSet, doc, json1, textUnicode) => {
 
   // Iterate over all changes in the ChangeSet.
   // See https://codemirror.net/6/docs/ref/#state.ChangeSet.iterChanges
+  // See https://codemirror.net/docs/ref/#state.Text.sliceString
   // This was also the approach taken in the YJS CodeMirror integration.
   // See https://github.com/yjs/y-codemirror.next/blob/main/src/y-sync.js#L141
 
-  let offset = 0; // Used to track the position offset based on previous operations
-
+  // `offset`
+  //  - Used to track the position offset based on previous operations
+  //  - This is needed to support multi-part ops, such as those generated
+  //    by running Prettier on a code file then using the resulting diff
+  let offset = 0;
   changeSet.iterChanges((fromA, toA, fromB, toB, inserted) => {
-    // // String deletion
-    // if (fromA !== toA) {
-    //   unicodeOp.push(textUnicode.remove(fromA, doc.sliceString(fromA, toA)));
-    // }
-
-    // // String insertion
-    // if (inserted.length > 0) {
-    //   const insertedStr = inserted.sliceString(0, inserted.length, "\n");
-    //   unicodeOp.push(textUnicode.insert(fromA, insertedStr));
-    // }
-
-    // See https://codemirror.net/docs/ref/#state.Text.sliceString
-    const insertedText = inserted.sliceString(0, inserted.length, "\n");
-
+    // String deletion
     if (fromA !== toA) {
-      unicodeOp.push(
-        textUnicode.remove(fromA + offset, doc.sliceString(fromA, toA))
-      );
+      const deletedText = doc.sliceString(fromA, toA);
+      unicodeOp.push(textUnicode.remove(fromA + offset, deletedText));
+      offset -= toA - fromA;
     }
+
+    // String insertion
     if (insertedText.length > 0) {
+      const insertedText = inserted.sliceString(0, inserted.length, "\n");
       unicodeOp.push(textUnicode.insert(fromA + offset, insertedText));
+      offset += insertedText.length;
     }
-    offset += insertedText.length - (toA - fromA);
   });
 
   // Composes string deletion followed by string insertion
