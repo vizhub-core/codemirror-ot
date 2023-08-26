@@ -47,7 +47,7 @@ export const changesToOpJSON1 = (path, changeSet, doc, json1, textUnicode) => {
   // Edits in multiple places at once?
   // No idea.
   changeSet.iterChanges((fromA, toA, fromB, toB, inserted) => {
-    const p = path.concat([fromA]);
+    // const p = path.concat([fromA]);
 
     // String deletion
     if (fromA !== toA) {
@@ -69,40 +69,91 @@ export const changesToOpJSON1 = (path, changeSet, doc, json1, textUnicode) => {
   return json1.editOp(path, "text-unicode", unicodeOpComposed);
 };
 
-// Converts a json0 OT op to a CodeMirror ChangeSet.
+// // Converts a json0 OT op to a CodeMirror ChangeSet.
+// export const opToChangesJSON0 = (op) => {
+//   const changes = [];
+
+//   for (let i = 0; i < op.length; i++) {
+//     const component = op[i];
+//     const position = component.p[component.p.length - 1];
+
+//     // String insert
+//     if (component.si !== undefined) {
+//       // String replacement
+//       // e.g. [ { p: [5], sd: ' ' }, { p: [5], si: '-' } ],
+//       if (
+//         i > 0 &&
+//         op[i - 1].sd !== undefined &&
+//         JSON.stringify(op[i - 1].p) === JSON.stringify(component.p)
+//       ) {
+//         // Instead of
+//         //   changes: [
+//         //     { from: 5, to: 6 },
+//         //     { from: 5, to: 5, insert: '-' },
+//         //   ],
+//         //
+//         // we want to end up with
+//         //   changes: [{ from: 5, to: 6, insert: '-' }],
+//         //
+//         changes[i - 1].insert = component.si;
+//       } else {
+//         changes.push({ from: position, to: position, insert: component.si });
+//       }
+//     }
+
+//     // String deletion
+//     if (component.sd !== undefined) {
+//       changes.push({ from: position, to: position + component.sd.length });
+//     }
+//   }
+//   return changes;
+// };
+
 export const opToChangesJSON0 = (op) => {
   const changes = [];
+  let offset = 0; // Used to track the position offset based on previous operations
+
   for (let i = 0; i < op.length; i++) {
     const component = op[i];
-    const position = component.p[component.p.length - 1];
+    const originalPosition = component.p[component.p.length - 1];
+    const adjustedPosition = originalPosition + offset;
 
     // String insert
     if (component.si !== undefined) {
       // String replacement
-      // e.g. [ { p: [5], sd: ' ' }, { p: [5], si: '-' } ],
       if (
         i > 0 &&
         op[i - 1].sd !== undefined &&
         JSON.stringify(op[i - 1].p) === JSON.stringify(component.p)
       ) {
-        // Instead of
-        //   changes: [
-        //     { from: 5, to: 6 },
-        //     { from: 5, to: 5, insert: '-' },
-        //   ],
-        //
-        // we want to end up with
-        //   changes: [{ from: 5, to: 6, insert: '-' }],
-        //
+        // Modify the previous change to be a replacement instead of an insertion
         changes[i - 1].insert = component.si;
+
+        // Undo the offset added by the previous change
+        offset -= op[i - 1].sd.length;
+
+        // Adjust the offset based on the length of the inserted string
+        // offset += component.si.length;
       } else {
-        changes.push({ from: position, to: position, insert: component.si });
+        changes.push({
+          from: adjustedPosition,
+          to: adjustedPosition,
+          insert: component.si,
+        });
+        // offset += component.si.length; // Adjust offset for inserted string
       }
     }
 
-    // String deletion
-    if (component.sd !== undefined) {
-      changes.push({ from: position, to: position + component.sd.length });
+    // String deletion (not part of a replacement)
+    if (
+      component.sd !== undefined &&
+      (i === 0 || JSON.stringify(op[i - 1].p) !== JSON.stringify(component.p))
+    ) {
+      changes.push({
+        from: adjustedPosition,
+        to: adjustedPosition + component.sd.length,
+      });
+      offset += component.sd.length; // Adjust offset for deleted string
     }
   }
   return changes;
@@ -124,76 +175,6 @@ export const opToChangesJSON1 = (op) => {
       // - **"str"**: Insert *"str"* at the current position in the document
       // - **{d:N}**: Delete *N* characters at the current position in the document
       // - **{d:"str"}**: Delete the string *"str"* at the current position in the document.
-
-      // This code works for simple cases where there is only one string edit.
-      // if (es.length === 3) {
-      //   // String replacement
-      //   // e.g. [5,"-",{"d":" "}]
-      //   changes.push({
-      //     from: position,
-      //     to: position + es[2].d.length,
-      //     insert: es[1],
-      //   });
-      // } else if (
-      //   es.length === 2 &&
-      //   typeof es[0] !== "number" &&
-      //   es[1].d !== undefined
-      // ) {
-      //   // String replacement from position 0.
-      //   // e.g. ["g",{"d":"Hello World"}]
-      //   changes.push({
-      //     from: 0,
-      //     to: es[1].d.length,
-      //     insert: es[0],
-      //   });
-      // } else if (es[es.length - 1].d !== undefined) {
-      //   // String deletion
-      //   // e.g. [5,{"d":" Beautiful "}], [{"d":"d"}]
-      //   changes.push({
-      //     from: position,
-      //     to: position + es[es.length - 1].d.length,
-      //   });
-      // } else {
-      //   // String insertion
-      //   // e.g. [5," Beautiful "], ["d"],
-      //   changes.push({
-      //     from: position,
-      //     to: position,
-      //     insert: es[es.length - 1],
-      //   });
-      // }
-
-      // for (let i = 0; i < es.length; i++) {
-      //   const component = es[i];
-
-      //   if (typeof component === "number") {
-      //     // It's a skip/retain operation.
-      //     position += component;
-      //   } else if (typeof component === "string") {
-      //     // It's an insertion.
-      //     changes.push({
-      //       from: position,
-      //       to: position,
-      //       insert: component,
-      //     });
-      //   } else if (component && component.d !== undefined) {
-      //     if (typeof component.d === "number") {
-      //       // It's a deletion by count.
-      //       changes.push({
-      //         from: position,
-      //         to: position + component.d,
-      //       });
-      //       position += component.d; // Important! Move the position forward by the number of characters deleted.
-      //     } else if (typeof component.d === "string") {
-      //       // It's a deletion of a specific string.
-      //       changes.push({
-      //         from: position,
-      //         to: position + component.d.length,
-      //       });
-      //       position += component.d.length; // Move the position forward by the length of the string deleted.
-      //     }
-      //   }
-      // }
 
       for (let i = 0; i < es.length; i++) {
         const component = es[i];
