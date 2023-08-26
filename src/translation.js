@@ -41,24 +41,33 @@ export const changesToOpJSON1 = (path, changeSet, doc, json1, textUnicode) => {
   // See https://codemirror.net/6/docs/ref/#state.ChangeSet.iterChanges
   // This was also the approach taken in the YJS CodeMirror integration.
   // See https://github.com/yjs/y-codemirror.next/blob/main/src/y-sync.js#L141
-  // TODO investigate "adj" here: https://github.com/yjs/y-codemirror.next/commit/89ba3455418cbb75c04b7376b8584601cca7c426
-  // Not sure why it was added in y-codemirror.
-  // Changes with many components maybe?
-  // Edits in multiple places at once?
-  // No idea.
+
+  let offset = 0; // Used to track the position offset based on previous operations
+
   changeSet.iterChanges((fromA, toA, fromB, toB, inserted) => {
-    // const p = path.concat([fromA]);
+    // // String deletion
+    // if (fromA !== toA) {
+    //   unicodeOp.push(textUnicode.remove(fromA, doc.sliceString(fromA, toA)));
+    // }
 
-    // String deletion
+    // // String insertion
+    // if (inserted.length > 0) {
+    //   const insertedStr = inserted.sliceString(0, inserted.length, "\n");
+    //   unicodeOp.push(textUnicode.insert(fromA, insertedStr));
+    // }
+
+    // See https://codemirror.net/docs/ref/#state.Text.sliceString
+    const insertedText = inserted.sliceString(0, inserted.length, "\n");
+
     if (fromA !== toA) {
-      unicodeOp.push(textUnicode.remove(fromA, doc.sliceString(fromA, toA)));
+      unicodeOp.push(
+        textUnicode.remove(fromA + offset, doc.sliceString(fromA, toA))
+      );
     }
-
-    // String insertion
-    if (inserted.length > 0) {
-      const insertedStr = inserted.sliceString(0, inserted.length, "\n");
-      unicodeOp.push(textUnicode.insert(fromA, insertedStr));
+    if (insertedText.length > 0) {
+      unicodeOp.push(textUnicode.insert(fromA + offset, insertedText));
     }
+    offset += insertedText.length - (toA - fromA);
   });
 
   // Composes string deletion followed by string insertion
@@ -68,46 +77,6 @@ export const changesToOpJSON1 = (path, changeSet, doc, json1, textUnicode) => {
 
   return json1.editOp(path, "text-unicode", unicodeOpComposed);
 };
-
-// // Converts a json0 OT op to a CodeMirror ChangeSet.
-// export const opToChangesJSON0 = (op) => {
-//   const changes = [];
-
-//   for (let i = 0; i < op.length; i++) {
-//     const component = op[i];
-//     const position = component.p[component.p.length - 1];
-
-//     // String insert
-//     if (component.si !== undefined) {
-//       // String replacement
-//       // e.g. [ { p: [5], sd: ' ' }, { p: [5], si: '-' } ],
-//       if (
-//         i > 0 &&
-//         op[i - 1].sd !== undefined &&
-//         JSON.stringify(op[i - 1].p) === JSON.stringify(component.p)
-//       ) {
-//         // Instead of
-//         //   changes: [
-//         //     { from: 5, to: 6 },
-//         //     { from: 5, to: 5, insert: '-' },
-//         //   ],
-//         //
-//         // we want to end up with
-//         //   changes: [{ from: 5, to: 6, insert: '-' }],
-//         //
-//         changes[i - 1].insert = component.si;
-//       } else {
-//         changes.push({ from: position, to: position, insert: component.si });
-//       }
-//     }
-
-//     // String deletion
-//     if (component.sd !== undefined) {
-//       changes.push({ from: position, to: position + component.sd.length });
-//     }
-//   }
-//   return changes;
-// };
 
 export const opToChangesJSON0 = (op) => {
   const changes = [];

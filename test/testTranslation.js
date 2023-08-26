@@ -229,7 +229,7 @@ export const testTranslation = () => {
     });
   });
 
-  describe.only("real world", () => {
+  describe("real world", () => {
     describe("multiple edits to one file", () => {
       verify({
         path: ["files", "502492594", "text"],
