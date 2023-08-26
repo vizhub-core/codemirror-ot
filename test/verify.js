@@ -1,18 +1,16 @@
-import * as assert from 'assert';
-import json0 from 'ot-json0';
-import json1 from 'ot-json1';
-import textUnicode from 'ot-text-unicode';
-import otDiff from 'json0-ot-diff';
-import jsondiff from 'json0-ot-diff';
-import diffMatchPatch from 'diff-match-patch';
-import { EditorState, ChangeSet } from '@codemirror/state';
-import { EditorView } from '@codemirror/view';
+import * as assert from "assert";
+import json0 from "ot-json0";
+import json1 from "ot-json1";
+import textUnicode from "ot-text-unicode";
+import jsondiff from "json0-ot-diff";
+import diffMatchPatch from "diff-match-patch";
+import { EditorState, ChangeSet } from "@codemirror/state";
 import {
   changesToOpJSON0,
   changesToOpJSON1,
   opToChangesJSON0,
   opToChangesJSON1,
-} from '../src/index';
+} from "../src/index";
 
 const atPath = (obj, path) => path.reduce((d, key) => d[key], obj);
 const clone = (obj) => JSON.parse(JSON.stringify(obj));
@@ -24,7 +22,7 @@ const diffJSON1 = (a, b) => jsondiff(a, b, diffMatchPatch, json1, textUnicode);
 export const verify = (options) => {
   const { before, after, changes, opJSON0, opJSON1, path = [] } = options;
 
-  it('JSON0 op should match computed diff', () => {
+  it("JSON0 op should match computed diff", () => {
     if (!opJSON0) {
       console.log(`opJSON0: ${JSON.stringify(diffJSON0(before, after))},`);
       process.exit();
@@ -32,7 +30,7 @@ export const verify = (options) => {
     assert.deepEqual(opJSON0, diffJSON0(before, after));
   });
 
-  it('JSON1 op should match computed diff', () => {
+  it("JSON1 op should match computed diff", () => {
     if (!opJSON1) {
       console.log(`opJSON1: ${JSON.stringify(diffJSON1(before, after))},`);
       process.exit();
@@ -40,22 +38,22 @@ export const verify = (options) => {
     assert.deepEqual(opJSON1, diffJSON1(before, after));
   });
 
-  it('JSON0 applied op should match expected text', () => {
+  it("JSON0 applied op should match expected text", () => {
     assert.deepEqual(after, json0.type.apply(clone(before), opJSON0));
   });
 
-  it('JSON0 inverted applied op should match expected text', () => {
+  it("JSON0 inverted applied op should match expected text", () => {
     assert.deepEqual(
       before,
       json0.type.apply(clone(after), json0.type.invert(opJSON0))
     );
   });
 
-  it('JSON1 applied op should match expected text', () => {
+  it("JSON1 applied op should match expected text", () => {
     assert.deepEqual(after, json1.type.apply(clone(before), opJSON1));
   });
 
-  it('JSON1 inverted applied op should match expected text', () => {
+  it("JSON1 inverted applied op should match expected text", () => {
     const opJSON1Invertible = json1.type.makeInvertible(opJSON1, before);
     assert.deepEqual(
       before,
@@ -63,7 +61,7 @@ export const verify = (options) => {
     );
   });
 
-  it('opToChangesJSON0', () => {
+  it("opToChangesJSON0", () => {
     if (!changes) {
       console.log(
         `changes: ${JSON.stringify(opToChangesJSON0(opJSON0))}, // from json0`
@@ -76,11 +74,11 @@ export const verify = (options) => {
     assert.deepEqual(opToChangesJSON0(opJSON0), changes);
   });
 
-  it('opToChangesJSON1', () => {
+  it("opToChangesJSON1", () => {
     assert.deepEqual(opToChangesJSON1(opJSON1), changes);
   });
 
-  it('changesToOpJSON0', () => {
+  it("changesToOpJSON0", () => {
     const state = EditorState.create({ doc: atPath(before, path) });
     const changeSet = ChangeSet.of(changes, before.length);
     //console.log();
@@ -89,7 +87,7 @@ export const verify = (options) => {
     assert.deepEqual(changesToOpJSON0(path, changeSet, state.doc), opJSON0);
   });
 
-  it('changesToOpJSON1', () => {
+  it("changesToOpJSON1", () => {
     const state = EditorState.create({ doc: atPath(before, path) });
     const changeSet = ChangeSet.of(changes, before.length);
     assert.deepEqual(
@@ -98,7 +96,7 @@ export const verify = (options) => {
     );
   });
 
-  it('applied changes should match expected text', () => {
+  it("applied changes should match expected text", () => {
     const state = EditorState.create({ doc: atPath(before, path) });
     const expected = atPath(after, path);
     const actual = state.update({ changes }).state.doc.sliceString(0);
