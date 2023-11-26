@@ -35,17 +35,17 @@
   },
   "devDependencies": {
     "diff-match-patch": "^1.0.5",
-    "@rollup/plugin-commonjs": "^25.0.4",
-    "@rollup/plugin-node-resolve": "^15.2.1",
-    "eslint": "^8.48.0",
-    "jsdom": "^22.1.0",
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "eslint": "^8.54.0",
+    "jsdom": "^23.0.0",
     "json0-ot-diff": "^1.1.2",
     "mocha": "^10.2.0",
     "ot-json0": "^1.1.0",
     "ot-json1": "^1.0.2",
     "ot-text-unicode": "^4.0.0",
-    "prettier": "^3.0.2",
-    "rollup": "^3.28.1",
-    "sharedb": "^4.0.0"
+    "prettier": "^3.1.0",
+    "rollup": "^4.6.0",
+    "sharedb": "^4.1.1"
   }
 }
