@@ -22,6 +22,10 @@ export const json1Sync = ({
         this.handleOp = (op) => {
           // Do not process ops if the lock is set.
           if (this.lock) return;
+
+          // Ignore ops that are not arrays
+          if (!Array.isArray(op)) return;
+
           this.lock = true;
           // Handle single-part and multi-part ops.
           // Example potential values for `op`:
@@ -29,6 +33,7 @@ export const json1Sync = ({
           //   ["files","73869312","text",{"es":[521," "]}
           // - Multi-part case:
           //   [["files","73869312","text",{"es":[521," "]}],["isInteracting",{"r":true}]]
+
           const opComponents = Array.isArray(op[0]) ? op : [op];
 
           for (const opComponent of opComponents) {
