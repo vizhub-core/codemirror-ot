@@ -45,50 +45,18 @@ const createEditor = ({ shareDBDoc, path, additionalExtensions = [] }) => {
 
 export const testIntegration = () => {
   describe('Mocked ShareDB', () => {
-    it('CodeMirror --> ShareDB', () => {
-      let submittedOp;
-      const editor = createEditor({
-        shareDBDoc: {
-          data: { content: { files: { 2432: { text: 'Hello World' } } } },
-          submitOp: (op) => {
-            submittedOp = op;
-          },
-          on: () => {},
-        },
-        path: ['content', 'files', '2432', 'text'],
-      });
+    const setupTestEnvironment = (text) => {
+      const environment = {};
 
-      editor.dispatch({ changes: [{ from: 5, to: 6, insert: '-' }] });
-      assert.deepEqual(submittedOp, [
-        'content',
-        'files',
-        '2432',
-        'text',
-        { es: [5, '-', { d: ' ' }] },
-      ]);
-    });
-    it('ShareDB --> CodeMirror', () => {
-      let receiveOp;
-      let submittedOp;
-      let changes;
-      const text = 'Hello World';
       createEditor({
         shareDBDoc: {
           data: { content: { files: { 2432: { text } } } },
-
-          // This handles ops submitted to ShareDB.
-          // We want to test that this does _not_ trigger
-          // for the case when our CodeMirror extension submits an op.
-          // Otherwise there would be an infinite loop.
           submitOp: (op) => {
-            submittedOp = op;
+            environment.submittedOp = op;
           },
-          // Here we mock the ShareDB Doc.on method.
-          // We can use `receiveOp` to simulate the ShareDB Doc
-          // receiving a remote op.
           on: (eventName, callback) => {
             if (eventName === 'op') {
-              receiveOp = callback;
+              environment.receiveOp = callback;
             }
           },
         },
@@ -96,18 +64,23 @@ export const testIntegration = () => {
         additionalExtensions: [
           ViewPlugin.fromClass(
             class {
-              // Listen for changes to the CodeMirror editor view via this extension.
-              // Possibly a simpler way?
               update(update) {
-                changes = update.changes;
+                environment.changes = update.changes;
               }
             },
           ),
         ],
       });
 
+      return environment;
+    };
+
+    it('ShareDB --> CodeMirror', () => {
+      const text = 'Hello World';
+      const environment = setupTestEnvironment(text);
+
       // Simulate ShareDB receiving a remote op.
-      receiveOp([
+      environment.receiveOp([
         'content',
         'files',
         '2432',
@@ -115,121 +88,46 @@ export const testIntegration = () => {
         { es: [5, '-', { d: ' ' }] },
       ]);
 
-      // verify that the remote op was translated to a CodeMirror change
-      // and dispatched to the editor view.
+      // Verify the remote op was translated to a CodeMirror change and dispatched to the editor view.
       assert.deepEqual(
-        changes.toJSON(),
+        environment.changes.toJSON(),
         ChangeSet.of([{ from: 5, to: 6, insert: '-' }], text.length).toJSON(),
       );
 
-      // Verify that our extension did _not_ submit the receiced ShareDB op
-      // back into ShareDB.
-      assert.equal(submittedOp, undefined);
+      // Verify that the extension did _not_ submit the received ShareDB op back into ShareDB.
+      assert.equal(environment.submittedOp, undefined);
     });
 
     it('ShareDB --> CodeMirror, multi-part ops', () => {
-      let receiveOp;
-      let submittedOp;
-      let changes;
       const text = 'Hello World';
-      createEditor({
-        shareDBDoc: {
-          data: { content: { files: { 2432: { text } } } },
-
-          // This handles ops submitted to ShareDB.
-          // We want to test that this does _not_ trigger
-          // for the case when our CodeMirror extension submits an op.
-          // Otherwise there would be an infinite loop.
-          submitOp: (op) => {
-            submittedOp = op;
-          },
-          // Here we mock the ShareDB Doc.on method.
-          // We can use `receiveOp` to simulate the ShareDB Doc
-          // receiving a remote op.
-          on: (eventName, callback) => {
-            if (eventName === 'op') {
-              receiveOp = callback;
-            }
-          },
-        },
-        path: ['content', 'files', '2432', 'text'],
-        additionalExtensions: [
-          ViewPlugin.fromClass(
-            class {
-              // Listen for changes to the CodeMirror editor view via this extension.
-              // Possibly a simpler way?
-              update(update) {
-                changes = update.changes;
-              }
-            },
-          ),
-        ],
-      });
+      const environment = setupTestEnvironment(text);
 
       // Simulate ShareDB receiving a remote op.
-
-      receiveOp([
+      environment.receiveOp([
         ['content', 'files', '2432', 'text', { es: [5, '-', { d: ' ' }] }],
         ['isInteracting', { r: true }],
       ]);
 
-      // verify that the remote op was translated to a CodeMirror change
-      // and dispatched to the editor view.
+      // Verify the remote op was translated to a CodeMirror change and dispatched to the editor view.
       assert.deepEqual(
-        changes.toJSON(),
+        environment.changes.toJSON(),
         ChangeSet.of([{ from: 5, to: 6, insert: '-' }], text.length).toJSON(),
       );
 
-      // Verify that our extension did _not_ submit the receiced ShareDB op
-      // back into ShareDB.
-      assert.equal(submittedOp, undefined);
+      // Verify that the extension did _not_ submit the received ShareDB op back into ShareDB.
+      assert.equal(environment.submittedOp, undefined);
     });
 
-    it('ShareDB --> CodeMirror, multi-part ops', () => {
-      let receiveOp;
-      let submittedOp;
-      let changes;
+    it('ShareDB --> CodeMirror, null ops', () => {
       const text = 'Hello World';
-      createEditor({
-        shareDBDoc: {
-          data: { content: { files: { 2432: { text } } } },
-
-          // This handles ops submitted to ShareDB.
-          // We want to test that this does _not_ trigger
-          // for the case when our CodeMirror extension submits an op.
-          // Otherwise there would be an infinite loop.
-          submitOp: (op) => {
-            submittedOp = op;
-          },
-          // Here we mock the ShareDB Doc.on method.
-          // We can use `receiveOp` to simulate the ShareDB Doc
-          // receiving a remote op.
-          on: (eventName, callback) => {
-            if (eventName === 'op') {
-              receiveOp = callback;
-            }
-          },
-        },
-        path: ['content', 'files', '2432', 'text'],
-        additionalExtensions: [
-          ViewPlugin.fromClass(
-            class {
-              // Listen for changes to the CodeMirror editor view via this extension.
-              // Possibly a simpler way?
-              update(update) {
-                changes = update.changes;
-              }
-            },
-          ),
-        ],
-      });
+      const environment = setupTestEnvironment(text);
 
       // Simulate ShareDB receiving a remote op.
-      receiveOp(null);
+      environment.receiveOp(null);
 
-      assert.equal(changes, undefined);
+      assert.equal(environment.changes, undefined);
 
-      assert.equal(submittedOp, undefined);
+      assert.equal(environment.submittedOp, undefined);
     });
   });
 
