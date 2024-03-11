@@ -20,20 +20,33 @@ export const json1Sync = ({
       constructor(view) {
         this.view = view;
         this.handleOp = (op) => {
-          // Ignore ops fired as a result of a change from `update` (this.lock).
-          // Ignore ops that have different, irrelevant, paths (canOpAffectPath).
-          if (!this.lock && canOpAffectPath(op, path)) {
-            this.lock = true;
-            if (debug) {
-              console.log('Received op from ShareDB');
-              console.log('  op: ' + JSON.stringify(op));
-              console.log(
-                '  generated changes: ' + JSON.stringify(opToChangesJSON1(op)),
-              );
+          // Do not process ops if the lock is set.
+          if (this.lock) return;
+          this.lock = true;
+          // Handle single-part and multi-part ops.
+          // Example potential values for `op`:
+          // - Single-part case (most common):
+          //   ["files","73869312","text",{"es":[521," "]}
+          // - Multi-part case:
+          //   [["files","73869312","text",{"es":[521," "]}],["isInteracting",{"r":true}]]
+          const opComponents = Array.isArray(op[0]) ? op : [op];
+
+          for (const opComponent of opComponents) {
+            // Ignore ops fired as a result of a change from `update` (this.lock).
+            // Ignore ops that have different, irrelevant, paths (canOpAffectPath).
+            if (canOpAffectPath(opComponent, path)) {
+              if (debug) {
+                console.log('Received op from ShareDB');
+                console.log('  op: ' + JSON.stringify(opComponent));
+                console.log(
+                  '  generated changes: ' +
+                    JSON.stringify(opToChangesJSON1(opComponent)),
+                );
+              }
+              view.dispatch({ changes: opToChangesJSON1(opComponent) });
             }
-            view.dispatch({ changes: opToChangesJSON1(op) });
-            this.lock = false;
           }
+          this.lock = false;
         };
         shareDBDoc.on('op', this.handleOp);
       }
