@@ -72,7 +72,7 @@ export const testIntegration = () => {
       let submittedOp;
       let changes;
       const text = 'Hello World';
-      const editor = createEditor({
+      createEditor({
         shareDBDoc: {
           data: { content: { files: { 2432: { text } } } },
 
@@ -113,6 +113,64 @@ export const testIntegration = () => {
         '2432',
         'text',
         { es: [5, '-', { d: ' ' }] },
+      ]);
+
+      // verify that the remote op was translated to a CodeMirror change
+      // and dispatched to the editor view.
+      assert.deepEqual(
+        changes.toJSON(),
+        ChangeSet.of([{ from: 5, to: 6, insert: '-' }], text.length).toJSON(),
+      );
+
+      // Verify that our extension did _not_ submit the receiced ShareDB op
+      // back into ShareDB.
+      assert.equal(submittedOp, undefined);
+    });
+
+    it('ShareDB --> CodeMirror, multi-part ops', () => {
+      let receiveOp;
+      let submittedOp;
+      let changes;
+      const text = 'Hello World';
+      createEditor({
+        shareDBDoc: {
+          data: { content: { files: { 2432: { text } } } },
+
+          // This handles ops submitted to ShareDB.
+          // We want to test that this does _not_ trigger
+          // for the case when our CodeMirror extension submits an op.
+          // Otherwise there would be an infinite loop.
+          submitOp: (op) => {
+            submittedOp = op;
+          },
+          // Here we mock the ShareDB Doc.on method.
+          // We can use `receiveOp` to simulate the ShareDB Doc
+          // receiving a remote op.
+          on: (eventName, callback) => {
+            if (eventName === 'op') {
+              receiveOp = callback;
+            }
+          },
+        },
+        path: ['content', 'files', '2432', 'text'],
+        additionalExtensions: [
+          ViewPlugin.fromClass(
+            class {
+              // Listen for changes to the CodeMirror editor view via this extension.
+              // Possibly a simpler way?
+              update(update) {
+                changes = update.changes;
+              }
+            },
+          ),
+        ],
+      });
+
+      // Simulate ShareDB receiving a remote op.
+
+      receiveOp([
+        ['content', 'files', '2432', 'text', { es: [5, '-', { d: ' ' }] }],
+        ['isInteracting', { r: true }],
       ]);
 
       // verify that the remote op was translated to a CodeMirror change
