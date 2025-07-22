@@ -82,6 +82,19 @@ export const testTranslation = () => {
         opJSON1: json1.editOp([], 'text-unicode', textUnicode.remove(0, 'd')),
       });
     });
+    describe('clear entire document', () => {
+      verify({
+        before: 'Hello World',
+        after: '',
+        changes: [{ from: 0, to: 11 }],
+        opJSON0: [{ p: [0], sd: 'Hello World' }],
+        opJSON1: json1.editOp(
+          [],
+          'text-unicode',
+          textUnicode.remove(0, 'Hello World'),
+        ),
+      });
+    });
     // TODO
     //describe.only('only character delete with CM6 change from interaction', () => {
     //  verify({
@@ -225,6 +238,75 @@ export const testTranslation = () => {
         opJSON0: [{ si: ' Beautiful ', p: ['files', 'README.md', 5] }],
         opJSON1: ['files', 'README.md', { es: [5, ' Beautiful '] }],
         changes: [{ from: 5, to: 5, insert: ' Beautiful ' }],
+      });
+    });
+    describe('clear entire document with path', () => {
+      verify({
+        path: ['files', 'README.md'],
+        before: { files: { 'README.md': 'Hello World' } },
+        after: { files: { 'README.md': '' } },
+        changes: [{ from: 0, to: 11 }],
+        opJSON0: [{ p: ['files', 'README.md', 0], sd: 'Hello World' }],
+        opJSON1: ['files', 'README.md', { es: [{ d: 'Hello World' }] }],
+      });
+    });
+  });
+
+  describe('empty document operations', () => {
+    describe('no-op on empty document', () => {
+      verify({
+        before: '',
+        after: '',
+        changes: [],
+        opJSON0: [],
+        opJSON1: null,
+      });
+    });
+  });
+
+  describe('multiple changes', () => {
+    describe('multiple non-contiguous changes', () => {
+      verify({
+        before: 'Hello World Peace',
+        after: 'Hi Earth Love',
+        changes: [{ from: 1, to: 16, insert: 'i Earth Lov' }],
+        opJSON0: [
+          { p: [1], sd: 'ello World Peac' },
+          { p: [1], si: 'i Earth Lov' },
+        ],
+        opJSON1: [{ es: [1, 'i Earth Lov', { d: 'ello World Peac' }] }],
+      });
+    });
+  });
+
+  describe('unicode and special characters', () => {
+    // TODO get this test to pass
+    describe.skip('unicode emoji replacement', () => {
+      verify({
+        before: '🚀 Hello',
+        after: '🚀 World',
+        changes: [{ from: 3, to: 8, insert: 'World' }],
+        opJSON0: [
+          { p: [3], sd: 'Hello' },
+          { p: [3], si: 'World' },
+        ],
+        opJSON1: json1.editOp(
+          [],
+          'text-unicode',
+          textUnicode.type.compose(
+            textUnicode.remove(3, 'Hello'),
+            textUnicode.insert(3, 'World'),
+          ),
+        ),
+      });
+    });
+    describe('unicode emoji insert', () => {
+      verify({
+        before: 'Hello World',
+        after: 'Hello 🌍 World',
+        changes: [{ from: 5, to: 5, insert: ' 🌍' }],
+        opJSON0: [{ p: [5], si: ' 🌍' }],
+        opJSON1: json1.editOp([], 'text-unicode', textUnicode.insert(5, ' 🌍')),
       });
     });
   });
