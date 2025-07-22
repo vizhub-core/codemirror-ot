@@ -281,7 +281,7 @@ export const testTranslation = () => {
 
   describe('unicode and special characters', () => {
     // TODO get this test to pass
-    describe.skip('unicode emoji replacement', () => {
+    describe('unicode emoji replacement', () => {
       verify({
         before: '🚀 Hello',
         after: '🚀 World',
