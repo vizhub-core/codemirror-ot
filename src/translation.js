@@ -56,6 +56,10 @@ export const changesToOpJSON1 = (path, changeSet, doc, json1, textUnicode) => {
   // Composes string deletion followed by string insertion
   // to produce a "new kind" of op component that represents
   // a string replacement (using only a single op component).
+  if (op.length === 0) {
+    return null;
+  }
+
   op = op.reduce(textUnicode.type.compose);
 
   return json1.editOp(path, 'text-unicode', op);
@@ -79,7 +83,9 @@ export const opToChangesJSON0 = (op) => {
         JSON.stringify(op[i - 1].p) === JSON.stringify(component.p)
       ) {
         // Modify the previous change to be a replacement instead of an insertion
-        changes[i - 1].insert = component.si;
+        if (changes[i - 1]) {
+          changes[i - 1].insert = component.si;
+        }
 
         // Undo the offset added by the previous change
         offset -= op[i - 1].sd.length;
@@ -113,6 +119,7 @@ export const opToChangesJSON0 = (op) => {
 
 // Converts a json1 OT op to a CodeMirror ChangeSet.
 export const opToChangesJSON1 = (op) => {
+  if (!op) return [];
   const changes = [];
   for (const component of op) {
     const { es } = component;

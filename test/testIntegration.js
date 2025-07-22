@@ -129,6 +129,28 @@ export const testIntegration = () => {
 
       assert.equal(environment.submittedOp, undefined);
     });
+
+    it('Clear entire document ShareDB --> CodeMirror', () => {
+      const text = 'Hello World';
+      const environment = setupTestEnvironment(text);
+
+      // Simulate ShareDB receiving a remote op that clears the document
+      environment.receiveOp([
+        'content',
+        'files',
+        '2432',
+        'text',
+        { es: [{ d: 'Hello World' }] },
+      ]);
+
+      // Verify the document was cleared
+      assert.deepEqual(
+        environment.changes.toJSON(),
+        ChangeSet.of([{ from: 0, to: 11 }], text.length).toJSON(),
+      );
+
+      assert.equal(environment.submittedOp, undefined);
+    });
   });
 
   describe('Real ShareDB', () => {

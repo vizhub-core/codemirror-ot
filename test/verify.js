@@ -31,7 +31,7 @@ export const verify = (options) => {
   });
 
   it('JSON1 op should match computed diff', () => {
-    if (!opJSON1) {
+    if (opJSON1 === undefined) {
       console.log(`opJSON1: ${JSON.stringify(diffJSON1(before, after))},`);
       process.exit();
     }
@@ -50,7 +50,11 @@ export const verify = (options) => {
   });
 
   it('JSON1 applied op should match expected text', () => {
-    assert.deepEqual(after, json1.type.apply(clone(before), opJSON1));
+    if (opJSON1 !== null) {
+      assert.deepEqual(after, json1.type.apply(clone(before), opJSON1));
+    } else {
+      assert.deepEqual(after, before);
+    }
   });
 
   it('JSON1 inverted applied op should match expected text', () => {
@@ -86,7 +90,7 @@ export const verify = (options) => {
 
   it('changesToOpJSON1', () => {
     const state = EditorState.create({ doc: atPath(before, path) });
-    const changeSet = ChangeSet.of(changes, before.length);
+    const changeSet = ChangeSet.of(changes, atPath(before, path).length);
     assert.deepEqual(
       changesToOpJSON1(path, changeSet, state.doc, json1, textUnicode),
       opJSON1,
