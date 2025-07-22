@@ -138,9 +138,7 @@ export const testIntegration = () => {
       const connection = backend.connect();
       const shareDBDoc = connection.get('testCollection', 'testDocId');
       shareDBDoc.create(
-        {
-          content: { files: { 2432: { text: 'Hello World' } } },
-        },
+        { content: { files: { 2432: { text: 'Hello World' } } } },
         json1.type.uri,
         () => {
           shareDBDoc.on('op', (op) => {
@@ -178,7 +176,7 @@ export const testIntegration = () => {
         json1.type.uri,
         () => {
           shareDBDoc.subscribe(() => {
-            const editor = createEditor({
+            createEditor({
               shareDBDoc,
               path: ['content', 'files', '2432', 'text'],
               additionalExtensions: [
