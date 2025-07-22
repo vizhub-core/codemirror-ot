@@ -294,8 +294,8 @@ export const testTranslation = () => {
           [],
           'text-unicode',
           textUnicode.type.compose(
-            textUnicode.remove(3, 'Hello'),
-            textUnicode.insert(3, 'World'),
+            textUnicode.remove(2, 'Hello'),
+            textUnicode.insert(2, 'World'),
           ),
         ),
       });
