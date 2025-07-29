@@ -52,7 +52,6 @@ export const verify = (options) => {
 
     assert.deepEqual(opJSON1, diffJSON1(before, after));
   });
-
   it('JSON0 applied op should match expected text', () => {
     assert.deepEqual(after, json0.type.apply(clone(before), opJSON0));
   });
@@ -94,7 +93,9 @@ export const verify = (options) => {
   });
 
   it('opToChangesJSON1', () => {
-    assert.deepEqual(opToChangesJSON1(opJSON1), changes);
+    const originalDoc =
+      typeof before === 'string' ? before : atPath(before, path);
+    assert.deepEqual(opToChangesJSON1(opJSON1, originalDoc), changes);
   });
 
   it('changesToOpJSON0', () => {

@@ -40,15 +40,23 @@ export const json1Sync = ({
             // Ignore ops fired as a result of a change from `update` (this.lock).
             // Ignore ops that have different, irrelevant, paths (canOpAffectPath).
             if (canOpAffectPath(opComponent, path)) {
+              // Extract the original document content at the specified path
+              const originalDoc = path.reduce(
+                (obj, key) => obj && obj[key],
+                shareDBDoc.data,
+              );
+
               if (debug) {
                 console.log('Received op from ShareDB');
                 console.log('  op: ' + JSON.stringify(opComponent));
                 console.log(
                   '  generated changes: ' +
-                    JSON.stringify(opToChangesJSON1(opComponent)),
+                    JSON.stringify(opToChangesJSON1(opComponent, originalDoc)),
                 );
               }
-              view.dispatch({ changes: opToChangesJSON1(opComponent) });
+              view.dispatch({
+                changes: opToChangesJSON1(opComponent, originalDoc),
+              });
             }
           }
           this.lock = false;
