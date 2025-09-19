@@ -27,6 +27,41 @@ export const json1Sync = ({
           if (!Array.isArray(op)) return;
 
           this.lock = true;
+
+          // Special case for multi-file ops from vizhub-fs.
+          if (op[0] === 'files' && Array.isArray(op[1])) {
+            const fileId = path[2];
+            const fileOpComponent = op.slice(1).find((c) => c[0] === fileId);
+
+            if (fileOpComponent) {
+              // Reconstruct the op for a single file.
+              // The path is like ['content', 'files', fileId, 'text'].
+              // The fileOpComponent is like [fileId, 'text', { es: ... }].
+              // The op to pass to opToChangesJSON1 should be in the form
+              // [...fullPath, op].
+              const singleFileOp = [...path, fileOpComponent[2]];
+
+              const originalDoc = path.reduce(
+                (obj, key) => obj && obj[key],
+                shareDBDoc.data,
+              );
+
+              if (debug) {
+                console.log('Received special multi-file op from ShareDB');
+                console.log('  op: ' + JSON.stringify(op));
+                console.log(
+                  '  reconstructed op: ' + JSON.stringify(singleFileOp),
+                );
+              }
+
+              view.dispatch({
+                changes: opToChangesJSON1(singleFileOp, originalDoc),
+              });
+            }
+            this.lock = false;
+            return;
+          }
+
           // Handle single-part and multi-part ops.
           // Example potential values for `op`:
           // - Single-part case (most common):
