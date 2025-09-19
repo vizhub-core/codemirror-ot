@@ -345,45 +345,23 @@ export const testTranslation = () => {
             },
           },
         },
-        // opJSON0: [
-        //   { sd: "DOCTYPE", p: ["files", "502492594", "text", 2] },
-        //   { si: "doctype", p: ["files", "502492594", "text", 2] },
-        //   { sd: "  ", p: ["files", "502492594", "text", 158] },
-        //   { si: "\n", p: ["files", "502492594", "text", 181] },
-        // ],
         opJSON0: [
           { sd: 'DOCTYPE', p: ['files', '502492594', 'text', 2] },
           { si: 'doctype', p: ['files', '502492594', 'text', 2] },
           { sd: '  ', p: ['files', '502492594', 'text', 158] },
           { si: '\n', p: ['files', '502492594', 'text', 181] },
         ],
-        // opJSON1: [
-        //   "files",
-        //   "502492594",
-        //   "text",
-        //   { es: [2, "doctype", { d: "DOCTYPE" }, 149, { d: "  " }, 23, "\n"] },
-        // ],
-
         opJSON1: [
           'files',
           '502492594',
           'text',
           { es: [2, 'doctype', { d: 'DOCTYPE' }, 149, { d: '  ' }, 23, '\n'] },
         ],
-
-        // This one fails "applied changes should match expected text"
-        // changes: [
-        //   { from: 2, to: 9, insert: "doctype" },
-        //   { from: 158, to: 160 },
-        //   { from: 181, to: 181, insert: "\n" },
-        // ], // from json0
-
-        // This one passes "applied changes should match expected text"
         changes: [
           { from: 2, to: 9, insert: 'doctype' },
           { from: 158, to: 160 },
           { from: 183, to: 183, insert: '\n' },
-        ], // from json1
+        ],
       });
     });
   });
