@@ -162,6 +162,24 @@ export const opToChangesJSON1 = (op, originalDoc = null) => {
   if (!op) return [];
   const changes = [];
 
+  // Check if this is a move operation
+  // Move ops have form: [prefix..., [dest_key, {d: ...}], [src_key, {p: ...}]]
+  if (op.length >= 2) {
+    const secondLast = op[op.length - 2]; // destination
+    const last = op[op.length - 1]; // source
+    
+    if (Array.isArray(secondLast) && Array.isArray(last) &&
+        secondLast.length === 2 && last.length === 2 &&
+        typeof secondLast[1] === 'object' && secondLast[1].d !== undefined &&
+        typeof last[1] === 'object' && last[1].p !== undefined) {
+      
+      // It's a move operation - the document at this path is being moved away
+      // So we need to delete all content from this editor
+      changes.push({ from: 0, to: originalDoc ? originalDoc.length : 0 });
+      return changes;
+    }
+  }
+
   for (const component of op) {
     if (typeof component !== 'object' || component === null) {
       continue;
