@@ -28,70 +28,62 @@ export const json1Sync = ({
 
           this.lock = true;
 
-          // Special case for multi-file ops from vizhub-fs.
-          if (op[0] === 'files' && Array.isArray(op[1])) {
-            const fileId = path[2];
-            const fileOpComponent = op.slice(1).find((c) => c[0] === fileId);
-
-            if (fileOpComponent) {
-              // Reconstruct the op for a single file.
-              // The path is like ['content', 'files', fileId, 'text'].
-              // The fileOpComponent is like [fileId, 'text', { es: ... }].
-              // The op to pass to opToChangesJSON1 should be in the form
-              // [...fullPath, op].
-              const singleFileOp = [...path, fileOpComponent[2]];
-
-              const originalDoc = path.reduce(
-                (obj, key) => obj && obj[key],
-                shareDBDoc.data,
-              );
-
-              if (debug) {
-                console.log('Received special multi-file op from ShareDB');
-                console.log('  op: ' + JSON.stringify(op));
-                console.log(
-                  '  reconstructed op: ' + JSON.stringify(singleFileOp),
-                );
-              }
-
-              view.dispatch({
-                changes: opToChangesJSON1(singleFileOp, originalDoc),
-              });
-            }
-            this.lock = false;
-            return;
-          }
-
           // Handle single-part and multi-part ops.
           // Example potential values for `op`:
           // - Single-part case (most common):
           //   ["files","73869312","text",{"es":[521," "]}
           // - Multi-part case:
           //   [["files","73869312","text",{"es":[521," "]}],["isInteracting",{"r":true}]]
-
+          // - Special multi-file case from vizhub-fs:
+          //   ["files",["22133515","text",{"es":[304,"\n"]}],["35721964","text",{...}]]
           const opComponents = Array.isArray(op[0]) ? op : [op];
 
           for (const opComponent of opComponents) {
             // Ignore ops fired as a result of a change from `update` (this.lock).
             // Ignore ops that have different, irrelevant, paths (canOpAffectPath).
             if (canOpAffectPath(opComponent, path)) {
-              // Extract the original document content at the specified path
               const originalDoc = path.reduce(
                 (obj, key) => obj && obj[key],
                 shareDBDoc.data,
               );
 
-              if (debug) {
-                console.log('Received op from ShareDB');
-                console.log('  op: ' + JSON.stringify(opComponent));
-                console.log(
-                  '  generated changes: ' +
-                    JSON.stringify(opToChangesJSON1(opComponent, originalDoc)),
-                );
+              // Special case for multi-file ops from vizhub-fs.
+              if (opComponent[0] === 'files' && Array.isArray(opComponent[1])) {
+                const fileId = path[2];
+                const fileOpPart = opComponent
+                  .slice(1)
+                  .find((c) => Array.isArray(c) && c[0] === fileId);
+
+                if (fileOpPart) {
+                  // Reconstruct the op for a single file.
+                  const singleFileOp = [...path, fileOpPart[2]];
+
+                  if (debug) {
+                    console.log('Received special multi-file op from ShareDB');
+                    console.log('  op: ' + JSON.stringify(opComponent));
+                    console.log(
+                      '  reconstructed op: ' + JSON.stringify(singleFileOp),
+                    );
+                  }
+                  view.dispatch({
+                    changes: opToChangesJSON1(singleFileOp, originalDoc),
+                  });
+                }
+              } else {
+                if (debug) {
+                  console.log('Received op from ShareDB');
+                  console.log('  op: ' + JSON.stringify(opComponent));
+                  console.log(
+                    '  generated changes: ' +
+                      JSON.stringify(
+                        opToChangesJSON1(opComponent, originalDoc),
+                      ),
+                  );
+                }
+                view.dispatch({
+                  changes: opToChangesJSON1(opComponent, originalDoc),
+                });
               }
-              view.dispatch({
-                changes: opToChangesJSON1(opComponent, originalDoc),
-              });
             }
           }
           this.lock = false;
