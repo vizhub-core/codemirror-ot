@@ -1,6 +1,7 @@
 import { ViewPlugin } from '@codemirror/view';
 import { changesToOpJSON1, opToChangesJSON1 } from './translation';
 import { canOpAffectPath } from './canOpAffectPath';
+import { reconstructOp } from './fileOp';
 
 // Inspired by:
 // https://github.com/codemirror/collab/blob/main/src/collab.ts
@@ -12,7 +13,7 @@ export const json1Sync = ({
   path = [],
   json1,
   textUnicode,
-  debug = false,
+  debug = true,
 }) =>
   ViewPlugin.fromClass(
     class {
@@ -22,6 +23,12 @@ export const json1Sync = ({
         this.handleOp = (op) => {
           // Do not process ops if the lock is set.
           if (this.lock) return;
+
+          if (debug) {
+            console.log(
+              'Received raw op from ShareDB: \n' + JSON.stringify(op, null, 2),
+            );
+          }
 
           // Ignore ops that are not arrays
           if (!Array.isArray(op)) return;
@@ -38,7 +45,28 @@ export const json1Sync = ({
           //   ["files",["22133515","text",{"es":[304,"\n"]}],["35721964","text",{...}]]
           const opComponents = Array.isArray(op[0]) ? op : [op];
 
-          for (const opComponent of opComponents) {
+          for (let opComponent of opComponents) {
+            if (debug) {
+              console.log(
+                'Examining op component: \n' +
+                  JSON.stringify(opComponent, null, 2),
+              );
+            }
+
+            opComponent = reconstructOp(opComponent, path);
+
+            if (debug) {
+              console.log(
+                'Reconstructed op component: \n' +
+                  JSON.stringify(opComponent, null, 2),
+              );
+              console.log(
+                'canOpAffectPath(opComponent, path): ' +
+                  canOpAffectPath(opComponent, path),
+              );
+              console.log('path: ' + JSON.stringify(path));
+            }
+
             // Ignore ops fired as a result of a change from `update` (this.lock).
             // Ignore ops that have different, irrelevant, paths (canOpAffectPath).
             if (canOpAffectPath(opComponent, path)) {
@@ -47,43 +75,21 @@ export const json1Sync = ({
                 shareDBDoc.data,
               );
 
-              // Special case for multi-file ops from vizhub-fs.
-              if (opComponent[0] === 'files' && Array.isArray(opComponent[1])) {
-                const fileId = path[2];
-                const fileOpPart = opComponent
-                  .slice(1)
-                  .find((c) => Array.isArray(c) && c[0] === fileId);
-
-                if (fileOpPart) {
-                  // Reconstruct the op for a single file.
-                  const singleFileOp = [...path, fileOpPart[2]];
-
-                  if (debug) {
-                    console.log('Received special multi-file op from ShareDB');
-                    console.log('  op: ' + JSON.stringify(opComponent));
-                    console.log(
-                      '  reconstructed op: ' + JSON.stringify(singleFileOp),
-                    );
-                  }
-                  view.dispatch({
-                    changes: opToChangesJSON1(singleFileOp, originalDoc),
-                  });
-                }
-              } else {
-                if (debug) {
-                  console.log('Received op from ShareDB');
-                  console.log('  op: ' + JSON.stringify(opComponent));
-                  console.log(
-                    '  generated changes: ' +
-                      JSON.stringify(
-                        opToChangesJSON1(opComponent, originalDoc),
-                      ),
-                  );
-                }
-                view.dispatch({
-                  changes: opToChangesJSON1(opComponent, originalDoc),
-                });
+              if (debug) {
+                console.log('Received op from ShareDB');
+                console.log('  op: ' + JSON.stringify(opComponent, null, 2));
+                console.log(
+                  '  generated changes: ' +
+                    JSON.stringify(
+                      opToChangesJSON1(opComponent, originalDoc),
+                      null,
+                      2,
+                    ),
+                );
               }
+              view.dispatch({
+                changes: opToChangesJSON1(opComponent, originalDoc),
+              });
             }
           }
           this.lock = false;
@@ -99,7 +105,9 @@ export const json1Sync = ({
           this.lock = true;
           if (debug) {
             console.log('Received change from CodeMirror');
-            console.log('  changes:' + JSON.stringify(update.changes.toJSON()));
+            console.log(
+              '  changes:' + JSON.stringify(update.changes.toJSON(), null, 2),
+            );
             console.log('  iterChanges:');
             update.changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
               console.log(
@@ -123,6 +131,8 @@ export const json1Sync = ({
                     json1,
                     textUnicode,
                   ),
+                  null,
+                  2,
                 ),
             );
           }

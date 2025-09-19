@@ -19,23 +19,7 @@ export const canOpAffectPath = (op, path) => {
     return false;
   }
 
-  // Special case for multi-file ops from vizhub-fs.
-  if (op[0] === 'files' && Array.isArray(op[1])) {
-    // Path is ['content', 'files', fileId, 'text']
-    // Op is ['files', [fileId, 'text', {...}], ...]
-    const fileId = path[2];
-    if (path[0] === 'content' && path[1] === 'files' && fileId) {
-      // The op part for a text file must be of the shape `[fileId, 'text', ...]`.
-      return op
-        .slice(1)
-        .some(
-          (fileOp) =>
-            Array.isArray(fileOp) &&
-            fileOp[0] === fileId &&
-            fileOp[1] === 'text',
-        );
-    }
-  }
+  // Special case for multi-file ops from vizhub-fs are handled by reconstructOp.
 
   if (debug) {
     console.log('  canOpAffectPath: comparing op and path');

@@ -7,3 +7,4 @@ export {
 
 export { json1Sync } from './integration';
 export { canOpAffectPath } from './canOpAffectPath';
+export { reconstructOp } from './fileOp';

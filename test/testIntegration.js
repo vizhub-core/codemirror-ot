@@ -5,7 +5,7 @@ import { EditorState, ChangeSet } from '@codemirror/state';
 import { EditorView, ViewPlugin } from '@codemirror/view';
 import { JSDOM } from 'jsdom';
 import ShareDB from 'sharedb';
-import { json1Sync, canOpAffectPath } from '../src/index';
+import { json1Sync, canOpAffectPath, reconstructOp } from '../src/index';
 
 ShareDB.types.register(json1.type);
 
@@ -308,6 +308,175 @@ export const testIntegration = () => {
       assert.equal(environment.submittedOp, undefined);
     });
 
+    it('ShareDB --> CodeMirror, special multi-file op with text part in middle', () => {
+      const fileId = '20811705';
+      const otherFileId1 = '0439f5df';
+      const otherFileId2 = '59c003db';
+      const text = 'a'.repeat(500);
+
+      const environment = {};
+
+      createEditor({
+        shareDBDoc: {
+          data: {
+            content: {
+              files: {
+                [fileId]: { text },
+                // otherFileIds do not exist yet, they will be created by the op.
+              },
+            },
+          },
+          submitOp: (op) => {
+            environment.submittedOp = op;
+          },
+          on: (eventName, callback) => {
+            if (eventName === 'op') {
+              environment.receiveOp = callback;
+            }
+          },
+        },
+        path: ['content', 'files', fileId, 'text'],
+        additionalExtensions: [
+          ViewPlugin.fromClass(
+            class {
+              update(update) {
+                if (update.docChanged) {
+                  environment.changes = update.changes;
+                }
+              }
+            },
+          ),
+        ],
+      });
+
+      const op = [
+        'files',
+        [
+          otherFileId1,
+          { i: { name: 'handlePostMessage.js', text: '...content...' } },
+        ],
+        [fileId, 'text', { es: [376, 'foo'] }],
+        [otherFileId2, { i: { name: 'loadConfig.js', text: '...content...' } }],
+      ];
+
+      // Simulate ShareDB receiving a remote op.
+      environment.receiveOp(op);
+
+      // Verify the remote op was translated to a CodeMirror change and dispatched to the editor view.
+      assert.deepEqual(
+        environment.changes.toJSON(),
+        ChangeSet.of(
+          [{ from: 376, to: 376, insert: 'foo' }],
+          text.length,
+        ).toJSON(),
+      );
+
+      // Verify that the extension did _not_ submit the received ShareDB op back into ShareDB.
+      assert.equal(environment.submittedOp, undefined);
+    });
+
+    it('ShareDB --> CodeMirror, special multi-file op with multiple text parts', () => {
+      const fileId1 = '85930950';
+      const fileId2 = '88903244';
+      const otherFileId1 = '591958d5';
+      const otherFileId2 = 'de0dfe9e';
+
+      const text1 = 'a'.repeat(1000);
+      const text2 = 'b'.repeat(300);
+
+      const environment1 = {};
+      const environment2 = {};
+
+      const listeners = [];
+      const shareDBDoc = {
+        data: {
+          content: {
+            files: {
+              [fileId1]: { text: text1 },
+              [fileId2]: { text: text2 },
+            },
+          },
+        },
+        submitOp: (op) => {
+          // This test does not cover submitting ops.
+        },
+        on: (eventName, callback) => {
+          if (eventName === 'op') {
+            listeners.push(callback);
+          }
+        },
+      };
+
+      // Create an editor for the first file.
+      createEditor({
+        shareDBDoc,
+        path: ['content', 'files', fileId1, 'text'],
+        additionalExtensions: [
+          ViewPlugin.fromClass(
+            class {
+              update(update) {
+                if (update.docChanged) {
+                  environment1.changes = update.changes;
+                }
+              }
+            },
+          ),
+        ],
+      });
+
+      // Create an editor for the second file.
+      createEditor({
+        shareDBDoc,
+        path: ['content', 'files', fileId2, 'text'],
+        additionalExtensions: [
+          ViewPlugin.fromClass(
+            class {
+              update(update) {
+                if (update.docChanged) {
+                  environment2.changes = update.changes;
+                }
+              }
+            },
+          ),
+        ],
+      });
+
+      const op = [
+        'files',
+        [
+          otherFileId1,
+          { i: { name: 'createStateFields.js', text: '...content...' } },
+        ],
+        [fileId1, 'text', { es: [426, 'foo'] }],
+        [fileId2, 'text', { es: [208, '\n'] }],
+        [
+          otherFileId2,
+          { i: { name: 'checkAndLoadData.js', text: '...content...' } },
+        ],
+      ];
+
+      // Simulate ShareDB broadcasting the op to all listeners.
+      listeners.forEach((listener) => listener(op));
+
+      // Verify the remote op was translated to a CodeMirror change and dispatched to the first editor view.
+      assert.deepEqual(
+        environment1.changes.toJSON(),
+        ChangeSet.of(
+          [{ from: 426, to: 426, insert: 'foo' }],
+          text1.length,
+        ).toJSON(),
+      );
+
+      // Verify the remote op was translated to a CodeMirror change and dispatched to the second editor view.
+      assert.deepEqual(
+        environment2.changes.toJSON(),
+        ChangeSet.of(
+          [{ from: 208, to: 208, insert: '\n' }],
+          text2.length,
+        ).toJSON(),
+      );
+    });
+
     it('ShareDB --> CodeMirror, null ops', () => {
       const text = 'Hello World';
       const environment = setupTestEnvironment(text);
@@ -541,53 +710,56 @@ export const testIntegration = () => {
     });
 
     describe('special multi-file op', () => {
-      it('should return false when op does not match path', () => {
-        const op = [
-          'files',
-          ['file1', 'text', { es: [0, 'a'] }],
-          ['file2', 'text', { es: [0, 'b'] }],
-        ];
-        const path = ['content', 'files', 'file3', 'text'];
-        assert.deepEqual(canOpAffectPath(op, path), false);
-      });
-
-      it('should return true when op contains a matching fileId (match first)', () => {
+      it('should return false for special multi-file op', () => {
         const op = [
           'files',
           ['file1', 'text', { es: [0, 'a'] }],
           ['file2', 'text', { es: [0, 'b'] }],
         ];
         const path = ['content', 'files', 'file1', 'text'];
-        assert.deepEqual(canOpAffectPath(op, path), true);
-      });
-
-      it('should return true when op contains a matching fileId (match second)', () => {
-        const op = [
-          'files',
-          ['file1', 'text', { es: [0, 'a'] }],
-          ['file2', 'text', { es: [0, 'b'] }],
-        ];
-        const path = ['content', 'files', 'file2', 'text'];
-        assert.deepEqual(canOpAffectPath(op, path), true);
+        assert.deepEqual(canOpAffectPath(op, path), false);
       });
     });
-
-    describe('special multi-file op with non-text part', () => {
+  });
+  describe('reconstructOp', () => {
+    it('should return regular op as is', () => {
+      const op = ['content', 'files', 'file1', 'text', { es: [0, 'a'] }];
+      const path = ['content', 'files', 'file1', 'text'];
+      assert.deepEqual(reconstructOp(op, path), op);
+    });
+    it('should reconstruct op for matching file', () => {
       const op = [
         'files',
         ['file1', 'text', { es: [0, 'a'] }],
-        ['file2', { i: { name: 'foo.js' } }],
+        ['file2', 'text', { es: [0, 'b'] }],
       ];
-
-      it('should return true for text part', () => {
-        const path = ['content', 'files', 'file1', 'text'];
-        assert.deepEqual(canOpAffectPath(op, path), true);
-      });
-
-      it('should return false for non-text part', () => {
-        const path = ['content', 'files', 'file2', 'text'];
-        assert.deepEqual(canOpAffectPath(op, path), false);
-      });
+      const path = ['content', 'files', 'file1', 'text'];
+      const expected = ['content', 'files', 'file1', 'text', { es: [0, 'a'] }];
+      assert.deepEqual(reconstructOp(op, path), expected);
+    });
+    it('should return null for non-matching file', () => {
+      const op = [
+        'files',
+        ['file1', 'text', { es: [0, 'a'] }],
+        ['file2', 'text', { es: [0, 'b'] }],
+      ];
+      const path = ['content', 'files', 'file3', 'text'];
+      assert.deepEqual(reconstructOp(op, path), null);
+    });
+    it('should return null for non-text op part', () => {
+      const op = ['files', ['file1', { i: { name: 'foo.js' } }]];
+      const path = ['content', 'files', 'file1', 'text'];
+      assert.deepEqual(reconstructOp(op, path), null);
+    });
+    it('should handle path not starting with content', () => {
+      const op = [
+        'files',
+        ['file1', 'text', { es: [0, 'a'] }],
+        ['file2', 'text', { es: [0, 'b'] }],
+      ];
+      const path = ['files', 'file1', 'text'];
+      const expected = ['files', 'file1', 'text', { es: [0, 'a'] }];
+      assert.deepEqual(reconstructOp(op, path), expected);
     });
   });
 };
