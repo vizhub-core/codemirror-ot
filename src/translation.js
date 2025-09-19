@@ -70,39 +70,39 @@ export const changesToOpJSON0 = (path, changeSet, doc) => {
 // This was also the approach taken in the YJS CodeMirror integration.
 // See https://github.com/yjs/y-codemirror.next/blob/main/src/y-sync.js#L141
 export const changesToOpJSON1 = (path, changeSet, doc, json1, textUnicode) => {
-  let op = [];
-  let offset = 0;
+  const op = [];
+  let lastPos = 0;
   const fullDoc = doc.sliceString(0, doc.length, '\n');
 
   changeSet.iterChanges((fromA, toA, fromB, toB, inserted) => {
+    const codePointFrom = utf16ToCodePoint(fullDoc, fromA);
     const deletedText = doc.sliceString(fromA, toA, '\n');
     const insertedText = inserted.sliceString(0, inserted.length, '\n');
 
-    // Convert UTF-16 position (CodeMirror) to code point position (text-unicode)
-    const codePointPos = utf16ToCodePoint(fullDoc, fromA) + offset;
-
-    if (deletedText) {
-      op.push(textUnicode.remove(codePointPos, deletedText));
+    if (codePointFrom > lastPos) {
+      op.push(codePointFrom - lastPos);
     }
 
-    if (insertedText) {
-      op.push(textUnicode.insert(codePointPos, insertedText));
+    if (insertedText.length > 0) {
+      op.push(insertedText);
     }
-
-    // Update offset in code point space
-    offset += insertedText.length - deletedText.length;
+    if (deletedText.length > 0) {
+      op.push({ d: deletedText });
+    }
+    lastPos = utf16ToCodePoint(fullDoc, toA);
   });
 
-  // Composes string deletion followed by string insertion
-  // to produce a "new kind" of op component that represents
-  // a string replacement (using only a single op component).
+  const docCodePointLength = [...fullDoc].length;
+  if (docCodePointLength > lastPos) {
+    op.push(docCodePointLength - lastPos);
+  }
+
   if (op.length === 0) {
     return null;
   }
 
-  op = op.reduce(textUnicode.type.compose);
-
-  return json1.editOp(path, 'text-unicode', op);
+  const normalized = textUnicode.type.normalize(op);
+  return json1.editOp(path, 'text-unicode', normalized);
 };
 
 export const opToChangesJSON0 = (op) => {
@@ -209,7 +209,7 @@ export const opToChangesJSON1 = (op, originalDoc = null) => {
           ) {
             let deletedLength;
             if (typeof es[i + 1].d === 'string') {
-              deletedLength = es[i + 1].d.length;
+              deletedLength = [...es[i + 1].d].length;
             } else if (typeof es[i + 1].d === 'number') {
               deletedLength = es[i + 1].d;
             } else {
@@ -272,23 +272,21 @@ export const opToChangesJSON1 = (op, originalDoc = null) => {
             position += subComponent.d;
           } else if (typeof subComponent.d === 'string') {
             // It's a deletion of a specific string.
+            const deletedLength = [...subComponent.d].length;
             let utf16From, utf16To;
             if (originalDoc) {
               utf16From = codePointToUtf16(originalDoc, position);
-              utf16To = codePointToUtf16(
-                originalDoc,
-                position + subComponent.d.length,
-              );
+              utf16To = codePointToUtf16(originalDoc, position + deletedLength);
             } else {
               utf16From = position;
-              utf16To = position + subComponent.d.length;
+              utf16To = position + deletedLength;
             }
 
             changes.push({
               from: utf16From,
               to: utf16To,
             });
-            position += subComponent.d.length;
+            position += deletedLength;
           }
         }
       }

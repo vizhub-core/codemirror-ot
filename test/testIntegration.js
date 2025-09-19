@@ -553,6 +553,220 @@ export const testIntegration = () => {
       assert.equal(environment.submittedOp, undefined);
     });
 
+    it('ShareDB --> CodeMirror, complex real world case from user report', () => {
+      const fileId = '06629612';
+      const before = `import { createStateField } from 'd3-rosetta';
+import { setupSVG } from './setupSVG.js';
+import { renderLoadingState } from './renderLoadingState.js';
+import { asyncRequest } from './asyncRequest.js';
+import { loadAndParseData } from './loadAndParseData.js';
+import { scatterPlot } from './scatterPlot.js';
+import { measureDimensions } from './measureDimensions.js';
+import { json } from 'd3';
+
+export const viz = (container, state, setState) => {
+  const stateField = createStateField(state, setState);
+  const [dataRequest, setDataRequest] =
+    stateField('dataRequest');
+  const [config, setConfig] = stateField('config');
+
+  // Set up postMessage event listener if not already set
+  if (!state.eventListenerAttached) {
+    window.addEventListener('message', (event) => {
+      if (event.data && typeof event.data === 'object') {
+        setState((state) => ({
+          ...state,
+          config: {
+            ...state.config,
+            ...event.data,
+          },
+        }));
+      }
+    });
+
+    setState((prevState) => ({
+      ...prevState,
+      eventListenerAttached: true,
+    }));
+  }
+
+  // Load config first if not already loaded
+  if (!config) {
+    json('config.json')
+      .then((loadedConfig) => {
+        setConfig(loadedConfig);
+      })
+      .catch((error) => {
+        console.error('Failed to load config:', error);
+      });
+    return;
+  }
+
+  // After config is loaded, load the data
+  if (!dataRequest) {
+    return asyncRequest(setDataRequest, () =>
+      loadAndParseData(config.dataUrl),
+    );
+  }
+
+  const { data, error } = dataRequest;
+  const dimensions = measureDimensions(container);
+  const svg = setupSVG(container, dimensions);
+
+  renderLoadingState(svg, {
+    shouldShow: !data,
+    text: error
+      ? \`Error: \${error.message}\`
+      : config.loadingMessage,
+    x: dimensions.width / 2,
+    y: dimensions.height / 2,
+    fontSize: config.loadingFontSize,
+    fontFamily: config.loadingFontFamily,
+  });
+
+  if (data) {
+    // Safely transform config properties to accessor functions
+    const configWithAccessors = {
+      ...config,
+      xValue: config.xValue
+        ? (d) => d[config.xValue]
+        : () => 0,
+      yValue: config.yValue
+        ? (d) => d[config.yValue]
+        : () => 0,
+      sizeValue: config.sizeValue
+        ? (d) => d[config.sizeValue]
+        : null,
+      pointRadiusValue: config.pointRadiusValue
+        ? (d) => d[config.pointRadiusValue]
+        : null,
+    };
+
+    scatterPlot(svg, {
+      ...configWithAccessors,
+      data,
+      dimensions,
+    });
+  }
+};`;
+      const after = `import { setupSVG } from './setupSVG.js';
+import { asyncRequest } from './asyncRequest.js';
+import { loadAndParseData } from './loadAndParseData.js';
+import { measureDimensions } from './measureDimensions.js';
+import {
+  initializeVizState,
+  loadConfig,
+} from './vizState.js';
+import { setupMessageHandler } from './vizHandlers.js';
+import { renderVisualization } from './renderViz.js';
+
+export const viz = (container, state, setState) => {
+  const { dataRequest, setDataRequest, config, setConfig } =
+    initializeVizState(state, setState);
+
+  // Set up postMessage event listener if not already set
+  if (!state.eventListenerAttached) {
+    setupMessageHandler(setState);
+  }
+
+  // Load config first if not already loaded
+  if (!config) {
+    loadConfig(setConfig);
+    return;
+  }
+
+  // After config is loaded, load the data
+  if (!dataRequest) {
+    return asyncRequest(setDataRequest, () =>
+      loadAndParseData(config.dataUrl),
+    );
+  }
+
+  const { data, error } = dataRequest;
+  const dimensions = measureDimensions(container);
+  const svg = setupSVG(container, dimensions);
+
+  renderVisualization(svg, data, error, config, dimensions);
+};`;
+
+      const op = [
+        'files',
+        [
+          fileId,
+          'text',
+          {
+            es: [
+              9,
+              "setupSVG } from './setupSVG",
+              {
+                d: "createStateField } from 'd3-rosetta';\nimport { setupSVG } from './setupSVG.js';\nimport { renderLoadingState } from './renderLoadingState",
+              },
+              114,
+              {
+                d: "import { scatterPlot } from './scatterPlot.js';\n",
+              },
+              68,
+              "\n  initializeVizState,\n  loadConfig,\n} from './vizState.js';\nimport { setupMessageHandler } from './vizHandlers.js';\nimport { renderVisualization } from './renderViz.js';\n\nexport const viz = (container, state, setState) => {\n  const { dataRequest, setDataRequest, config, setConfig } =\n    initializeVizState(state, setState);\n\n  // Set up postMessage event listener if not already set\n  if (!state.eventListenerAttached) {\n    setupMessageHandler(setState",
+              {
+                d: " json } from 'd3';\n\nexport const viz = (container, state, setState) => {\n  const stateField = createStateField(state, setState);\n  const [dataRequest, setDataRequest] =\n    stateField('dataRequest');\n  const [config, setConfig] = stateField('config');\n\n  // Set up postMessage event listener if not already set\n  if (!state.eventListenerAttached) {\n    window.addEventListener('message', (event) => {\n      if (event.data && typeof event.data === 'object') {\n        setState((state) => ({\n          ...state,\n          config: {\n            ...state.config,\n            ...event.data,\n          },\n        }));\n      }\n    });\n\n    setState((prevState) => ({\n      ...prevState,\n      eventListenerAttached: true,\n    })",
+              },
+              74,
+              {
+                d: "json('config.json')\n      .then((",
+              },
+              4,
+              {
+                d: 'ed',
+              },
+              6,
+              '(setConfig',
+              {
+                d: ") => {\n        setConfig(loadedConfig);\n      })\n      .catch((error) => {\n        console.error('Failed to load config:', error);\n      }",
+              },
+              329,
+              'Visualization(svg, data, error, config, dimensions);',
+              {
+                d: 'LoadingState(svg, {\n    shouldShow: !data,\n    text: error\n      ? `Error: ${error.message}`\n      : config.loadingMessage,\n    x: dimensions.width / 2,\n    y: dimensions.height / 2,\n    fontSize: config.loadingFontSize,\n    fontFamily: config.loadingFontFamily,\n  });\n\n  if (data) {\n    // Safely transform config properties to accessor functions\n    const configWithAccessors = {\n      ...config,\n      xValue: config.xValue\n        ? (d) => d[config.xValue]\n        : () => 0,\n      yValue: config.yValue\n        ? (d) => d[config.yValue]\n        : () => 0,\n      sizeValue: config.sizeValue\n        ? (d) => d[config.sizeValue]\n        : null,\n      pointRadiusValue: config.pointRadiusValue\n        ? (d) => d[config.pointRadiusValue]\n        : null,\n    };\n\n    scatterPlot(svg, {\n      ...configWithAccessors,\n      data,\n      dimensions,\n    });\n  }',
+              },
+            ],
+          },
+        ],
+        ['3a310d77', { i: { name: 'vizHandlers.js', text: '...' } }],
+        ['9c363ec0', { i: { name: 'renderViz.js', text: '...' } }],
+        ['f580dc4c', { i: { name: 'vizState.js', text: '...' } }],
+      ];
+
+      const environment = {};
+      let view;
+      createEditor({
+        shareDBDoc: {
+          data: { files: { [fileId]: { text: before } } },
+          submitOp: (op) => {
+            environment.submittedOp = op;
+          },
+          on: (eventName, callback) => {
+            if (eventName === 'op') {
+              environment.receiveOp = callback;
+            }
+          },
+        },
+        path: ['files', fileId, 'text'],
+        additionalExtensions: [
+          ViewPlugin.fromClass(
+            class {
+              constructor(v) {
+                view = v;
+              }
+            },
+          ),
+        ],
+      });
+
+      environment.receiveOp(op);
+
+      assert.equal(view.state.doc.toString(), after);
+    });
+
     it('ShareDB --> CodeMirror, move op', () => {
       const text = 'Hello World';
       const environment = setupTestEnvironment(text);
