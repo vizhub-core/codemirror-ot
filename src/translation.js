@@ -220,10 +220,7 @@ export const opToChangesJSON1 = (op, originalDoc = null) => {
             if (originalDoc) {
               // Convert from Unicode code point positions to UTF-16 positions using original document
               utf16From = codePointToUtf16(originalDoc, position);
-              utf16To = codePointToUtf16(
-                originalDoc,
-                position + deletedLength,
-              );
+              utf16To = codePointToUtf16(originalDoc, position + deletedLength);
             } else {
               // Fallback: assume positions are the same (ASCII-only content)
               utf16From = position;

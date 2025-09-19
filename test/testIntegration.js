@@ -5,7 +5,7 @@ import { EditorState, ChangeSet } from '@codemirror/state';
 import { EditorView, ViewPlugin } from '@codemirror/view';
 import { JSDOM } from 'jsdom';
 import ShareDB from 'sharedb';
-import { json1Sync, canOpAffectPath } from '../src/index';
+import { json1Sync, canOpAffectPath, reconstructOp } from '../src/index';
 
 ShareDB.types.register(json1.type);
 
@@ -710,71 +710,56 @@ export const testIntegration = () => {
     });
 
     describe('special multi-file op', () => {
-      it('should return false when op does not match path', () => {
-        const op = [
-          'files',
-          ['file1', 'text', { es: [0, 'a'] }],
-          ['file2', 'text', { es: [0, 'b'] }],
-        ];
-        const path = ['content', 'files', 'file3', 'text'];
-        assert.deepEqual(canOpAffectPath(op, path), false);
-      });
-
-      it('should return true when op contains a matching fileId (match first)', () => {
+      it('should return false for special multi-file op', () => {
         const op = [
           'files',
           ['file1', 'text', { es: [0, 'a'] }],
           ['file2', 'text', { es: [0, 'b'] }],
         ];
         const path = ['content', 'files', 'file1', 'text'];
-        assert.deepEqual(canOpAffectPath(op, path), true);
-      });
-
-      it('should return true when op contains a matching fileId (match second)', () => {
-        const op = [
-          'files',
-          ['file1', 'text', { es: [0, 'a'] }],
-          ['file2', 'text', { es: [0, 'b'] }],
-        ];
-        const path = ['content', 'files', 'file2', 'text'];
-        assert.deepEqual(canOpAffectPath(op, path), true);
-      });
-    });
-
-    describe('special multi-file op with non-text part', () => {
-      const op = [
-        'files',
-        ['file1', 'text', { es: [0, 'a'] }],
-        ['file2', { i: { name: 'foo.js' } }],
-      ];
-
-      it('should return true for text part', () => {
-        const path = ['content', 'files', 'file1', 'text'];
-        assert.deepEqual(canOpAffectPath(op, path), true);
-      });
-
-      it('should return false for non-text part', () => {
-        const path = ['content', 'files', 'file2', 'text'];
         assert.deepEqual(canOpAffectPath(op, path), false);
       });
     });
-
-    describe('special multi-file op with path not starting with content', () => {
+  });
+  describe('reconstructOp', () => {
+    it('should return regular op as is', () => {
+      const op = ['content', 'files', 'file1', 'text', { es: [0, 'a'] }];
+      const path = ['content', 'files', 'file1', 'text'];
+      assert.deepEqual(reconstructOp(op, path), op);
+    });
+    it('should reconstruct op for matching file', () => {
       const op = [
         'files',
         ['file1', 'text', { es: [0, 'a'] }],
         ['file2', 'text', { es: [0, 'b'] }],
       ];
-
-      it('should return true when op contains a matching fileId', () => {
-        const path = ['files', 'file1', 'text'];
-        assert.deepEqual(canOpAffectPath(op, path), true);
-      });
-
-      it('should return false when op does not match path', () => {
-        const path = ['files', 'file3', 'text'];
-        assert.deepEqual(canOpAffectPath(op, path), false);
-      });
+      const path = ['content', 'files', 'file1', 'text'];
+      const expected = ['content', 'files', 'file1', 'text', { es: [0, 'a'] }];
+      assert.deepEqual(reconstructOp(op, path), expected);
+    });
+    it('should return null for non-matching file', () => {
+      const op = [
+        'files',
+        ['file1', 'text', { es: [0, 'a'] }],
+        ['file2', 'text', { es: [0, 'b'] }],
+      ];
+      const path = ['content', 'files', 'file3', 'text'];
+      assert.deepEqual(reconstructOp(op, path), null);
+    });
+    it('should return null for non-text op part', () => {
+      const op = ['files', ['file1', { i: { name: 'foo.js' } }]];
+      const path = ['content', 'files', 'file1', 'text'];
+      assert.deepEqual(reconstructOp(op, path), null);
+    });
+    it('should handle path not starting with content', () => {
+      const op = [
+        'files',
+        ['file1', 'text', { es: [0, 'a'] }],
+        ['file2', 'text', { es: [0, 'b'] }],
+      ];
+      const path = ['files', 'file1', 'text'];
+      const expected = ['files', 'file1', 'text', { es: [0, 'a'] }];
+      assert.deepEqual(reconstructOp(op, path), expected);
     });
   });
 };
