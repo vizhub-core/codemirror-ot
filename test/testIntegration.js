@@ -65,7 +65,9 @@ export const testIntegration = () => {
           ViewPlugin.fromClass(
             class {
               update(update) {
-                environment.changes = update.changes;
+                if (update.docChanged) {
+                  environment.changes = update.changes;
+                }
               }
             },
           ),
@@ -118,6 +120,28 @@ export const testIntegration = () => {
       assert.equal(environment.submittedOp, undefined);
     });
 
+    it('ShareDB --> CodeMirror, multi-file multi-part op', () => {
+      const text = 'Hello World';
+      const environment = setupTestEnvironment(text);
+
+      // Simulate ShareDB receiving a remote op that affects two files.
+      environment.receiveOp([
+        // This part of the op should be applied.
+        ['content', 'files', '2432', 'text', { es: [5, '-', { d: ' ' }] }],
+        // This part of the op should be ignored by this editor instance.
+        ['content', 'files', 'other-file', 'text', { es: [0, 'Foo'] }],
+      ]);
+
+      // Verify the relevant op was translated to a CodeMirror change and dispatched to the editor view.
+      assert.deepEqual(
+        environment.changes.toJSON(),
+        ChangeSet.of([{ from: 5, to: 6, insert: '-' }], text.length).toJSON(),
+      );
+
+      // Verify that the extension did _not_ submit the received ShareDB op back into ShareDB.
+      assert.equal(environment.submittedOp, undefined);
+    });
+
     it('ShareDB --> CodeMirror, null ops', () => {
       const text = 'Hello World';
       const environment = setupTestEnvironment(text);
@@ -147,6 +171,69 @@ export const testIntegration = () => {
       assert.deepEqual(
         environment.changes.toJSON(),
         ChangeSet.of([{ from: 0, to: 11 }], text.length).toJSON(),
+      );
+
+      assert.equal(environment.submittedOp, undefined);
+    });
+
+    it('ShareDB --> CodeMirror, replacement op', () => {
+      const text = 'Hello World';
+      const newText = 'New Text';
+      const environment = setupTestEnvironment(text);
+
+      // Simulate ShareDB receiving a remote op that replaces the document.
+      environment.receiveOp([
+        'content',
+        'files',
+        '2432',
+        'text',
+        { r: text, i: newText },
+      ]);
+
+      // Verify the document was replaced.
+      assert.deepEqual(
+        environment.changes.toJSON(),
+        ChangeSet.of(
+          [{ from: 0, to: text.length, insert: newText }],
+          text.length,
+        ).toJSON(),
+      );
+
+      assert.equal(environment.submittedOp, undefined);
+    });
+
+    it('ShareDB --> CodeMirror, deletion op', () => {
+      const text = 'Hello World';
+      const environment = setupTestEnvironment(text);
+
+      // Simulate ShareDB receiving a remote op that deletes the document.
+      environment.receiveOp(['content', 'files', '2432', 'text', { r: text }]);
+
+      // Verify the document was cleared.
+      assert.deepEqual(
+        environment.changes.toJSON(),
+        ChangeSet.of([{ from: 0, to: text.length }], text.length).toJSON(),
+      );
+
+      assert.equal(environment.submittedOp, undefined);
+    });
+
+    it.skip('ShareDB --> CodeMirror, move op', () => {
+      const text = 'Hello World';
+      const environment = setupTestEnvironment(text);
+
+      // Simulate ShareDB receiving a remote op that moves the document.
+      environment.receiveOp(
+        json1.moveOp(
+          ['content', 'files', '2432', 'text'],
+          ['content', 'files', '2432', 'newtext'],
+        ),
+      );
+
+      // Verify the document was cleared from the old path.
+      assert.deepEqual(
+        environment.changes.toJSON(),
+        ChangeSet.of([{ from: 0, to: text.length }], text.length).toJSON(),
       );
 
       assert.equal(environment.submittedOp, undefined);

@@ -163,17 +163,20 @@ export const opToChangesJSON1 = (op, originalDoc = null) => {
   const changes = [];
 
   for (const component of op) {
-    const { es } = component;
+    if (typeof component !== 'object' || component === null) {
+      continue;
+    }
+    const { es, r, i, p } = component;
     if (es !== undefined) {
       let position = 0;
 
       for (let i = 0; i < es.length; i++) {
-        const component = es[i];
+        const subComponent = es[i];
 
-        if (typeof component === 'number') {
+        if (typeof subComponent === 'number') {
           // It's a skip/retain operation.
-          position += component;
-        } else if (typeof component === 'string') {
+          position += subComponent;
+        } else if (typeof subComponent === 'string') {
           // Check if the next component is a deletion, indicating a replacement.
           if (
             es[i + 1] &&
@@ -200,7 +203,7 @@ export const opToChangesJSON1 = (op, originalDoc = null) => {
             changes.push({
               from: utf16From,
               to: utf16To,
-              insert: component,
+              insert: subComponent,
             });
 
             position += deletedText.length;
@@ -217,48 +220,64 @@ export const opToChangesJSON1 = (op, originalDoc = null) => {
             changes.push({
               from: utf16Position,
               to: utf16Position,
-              insert: component,
+              insert: subComponent,
             });
           }
-        } else if (component && component.d !== undefined) {
-          if (typeof component.d === 'number') {
+        } else if (subComponent && subComponent.d !== undefined) {
+          if (typeof subComponent.d === 'number') {
             // It's a deletion by count.
             let utf16From, utf16To;
             if (originalDoc) {
               utf16From = codePointToUtf16(originalDoc, position);
-              utf16To = codePointToUtf16(originalDoc, position + component.d);
+              utf16To = codePointToUtf16(
+                originalDoc,
+                position + subComponent.d,
+              );
             } else {
               utf16From = position;
-              utf16To = position + component.d;
+              utf16To = position + subComponent.d;
             }
 
             changes.push({
               from: utf16From,
               to: utf16To,
             });
-            position += component.d;
-          } else if (typeof component.d === 'string') {
+            position += subComponent.d;
+          } else if (typeof subComponent.d === 'string') {
             // It's a deletion of a specific string.
             let utf16From, utf16To;
             if (originalDoc) {
               utf16From = codePointToUtf16(originalDoc, position);
               utf16To = codePointToUtf16(
                 originalDoc,
-                position + component.d.length,
+                position + subComponent.d.length,
               );
             } else {
               utf16From = position;
-              utf16To = position + component.d.length;
+              utf16To = position + subComponent.d.length;
             }
 
             changes.push({
               from: utf16From,
               to: utf16To,
             });
-            position += component.d.length;
+            position += subComponent.d.length;
           }
         }
       }
+    } else if (r !== undefined && i !== undefined) {
+      // Replacement
+      changes.push({
+        from: 0,
+        to: originalDoc ? originalDoc.length : 0,
+        insert: i,
+      });
+    } else if (r !== undefined) {
+      // Deletion
+      changes.push({ from: 0, to: originalDoc ? originalDoc.length : 0 });
+    } else if (p !== undefined) {
+      // Move (path remove)
+      changes.push({ from: 0, to: originalDoc ? originalDoc.length : 0 });
     }
   }
   return changes;
