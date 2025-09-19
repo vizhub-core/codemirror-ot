@@ -477,5 +477,37 @@ export const testIntegration = () => {
       const differentPath = ['content', 'files', 'other-file', 'text'];
       assert.deepEqual(canOpAffectPath(moveOp, differentPath), false);
     });
+
+    describe('special multi-file op', () => {
+      it('should return false when op does not match path', () => {
+        const op = [
+          'files',
+          ['file1', 'text', { es: [0, 'a'] }],
+          ['file2', 'text', { es: [0, 'b'] }],
+        ];
+        const path = ['content', 'files', 'file3', 'text'];
+        assert.deepEqual(canOpAffectPath(op, path), false);
+      });
+
+      it('should return true when op contains a matching fileId (match first)', () => {
+        const op = [
+          'files',
+          ['file1', 'text', { es: [0, 'a'] }],
+          ['file2', 'text', { es: [0, 'b'] }],
+        ];
+        const path = ['content', 'files', 'file1', 'text'];
+        assert.deepEqual(canOpAffectPath(op, path), true);
+      });
+
+      it('should return true when op contains a matching fileId (match second)', () => {
+        const op = [
+          'files',
+          ['file1', 'text', { es: [0, 'a'] }],
+          ['file2', 'text', { es: [0, 'b'] }],
+        ];
+        const path = ['content', 'files', 'file2', 'text'];
+        assert.deepEqual(canOpAffectPath(op, path), true);
+      });
+    });
   });
 };

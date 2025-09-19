@@ -19,6 +19,18 @@ export const canOpAffectPath = (op, path) => {
     return false;
   }
 
+  // Special case for multi-file ops from vizhub-fs.
+  if (op[0] === 'files' && Array.isArray(op[1])) {
+    // Path is ['content', 'files', fileId, 'text']
+    // Op is ['files', [fileId, 'text', {...}], ...]
+    const fileId = path[2];
+    if (path[0] === 'content' && path[1] === 'files' && fileId) {
+      return op
+        .slice(1)
+        .some((fileOp) => Array.isArray(fileOp) && fileOp[0] === fileId);
+    }
+  }
+
   if (debug) {
     console.log('  canOpAffectPath: comparing op and path');
     console.log('  op: ' + JSON.stringify(op));
@@ -33,7 +45,7 @@ export const canOpAffectPath = (op, path) => {
       break;
     }
   }
-  
+
   if (isRegularOp) {
     if (debug) {
       console.log('    regular op matches path prefix');
@@ -46,37 +58,46 @@ export const canOpAffectPath = (op, path) => {
   if (op.length >= 2) {
     const secondLast = op[op.length - 2]; // destination
     const last = op[op.length - 1]; // source
-    
-    if (Array.isArray(secondLast) && Array.isArray(last) &&
-        secondLast.length === 2 && last.length === 2 &&
-        typeof secondLast[1] === 'object' && secondLast[1].d !== undefined &&
-        typeof last[1] === 'object' && last[1].p !== undefined) {
-      
+
+    if (
+      Array.isArray(secondLast) &&
+      Array.isArray(last) &&
+      secondLast.length === 2 &&
+      last.length === 2 &&
+      typeof secondLast[1] === 'object' &&
+      secondLast[1].d !== undefined &&
+      typeof last[1] === 'object' &&
+      last[1].p !== undefined
+    ) {
       if (debug) {
         console.log('    detected move operation');
       }
-      
+
       // It's a move operation
       // Check if the source path matches our path
       const sourceFullPath = op.slice(0, -2).concat(last[0]);
       const destFullPath = op.slice(0, -2).concat(secondLast[0]);
-      
+
       if (debug) {
         console.log('    source path: ' + JSON.stringify(sourceFullPath));
         console.log('    dest path: ' + JSON.stringify(destFullPath));
       }
-      
+
       // Check if our path matches the source path (the one being moved from)
       if (sourceFullPath.length === path.length) {
-        const sourceMatches = sourceFullPath.every((segment, i) => segment === path[i]);
+        const sourceMatches = sourceFullPath.every(
+          (segment, i) => segment === path[i],
+        );
         if (sourceMatches) {
           if (debug) {
-            console.log('    matches source path - operation affects this path');
+            console.log(
+              '    matches source path - operation affects this path',
+            );
           }
           return true;
         }
       }
-      
+
       // For move operations, we typically only care about the source path for removal
       // The destination would be handled by a different editor instance
       if (debug) {
