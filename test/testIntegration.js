@@ -246,6 +246,68 @@ export const testIntegration = () => {
       assert.equal(environment.submittedOp, undefined);
     });
 
+    it('ShareDB --> CodeMirror, special multi-file op with non-text part', () => {
+      const fileId = '54471719';
+      const otherFileId = 'f9197e16';
+      const text = 'foo';
+
+      const environment = {};
+
+      createEditor({
+        shareDBDoc: {
+          data: {
+            content: {
+              files: {
+                [fileId]: { text },
+                // otherFileId does not exist yet, it will be created by the op.
+              },
+            },
+          },
+          submitOp: (op) => {
+            environment.submittedOp = op;
+          },
+          on: (eventName, callback) => {
+            if (eventName === 'op') {
+              environment.receiveOp = callback;
+            }
+          },
+        },
+        path: ['content', 'files', fileId, 'text'],
+        additionalExtensions: [
+          ViewPlugin.fromClass(
+            class {
+              update(update) {
+                if (update.docChanged) {
+                  environment.changes = update.changes;
+                }
+              }
+            },
+          ),
+        ],
+      });
+
+      const op = [
+        'files',
+        [fileId, 'text', { es: ['bar', { d: 'foo' }] }],
+        [
+          otherFileId,
+          { i: { name: 'stateManagement.js', text: '...content...' } },
+        ],
+      ];
+
+      // Simulate ShareDB receiving a remote op.
+      environment.receiveOp(op);
+
+      // Verify the remote op was translated to a CodeMirror change and dispatched to the editor view.
+      assert.deepEqual(
+        environment.changes.toJSON(),
+        ChangeSet.of([{ from: 0, to: 3, insert: 'bar' }], text.length).toJSON(),
+      );
+
+      // Verify that the extension did _not_ submit the received ShareDB op back into ShareDB.
+      assert.equal(environment.submittedOp, undefined);
+    });
+
     it('ShareDB --> CodeMirror, null ops', () => {
       const text = 'Hello World';
       const environment = setupTestEnvironment(text);
@@ -507,6 +569,24 @@ export const testIntegration = () => {
         ];
         const path = ['content', 'files', 'file2', 'text'];
         assert.deepEqual(canOpAffectPath(op, path), true);
+      });
+    });
+
+    describe('special multi-file op with non-text part', () => {
+      const op = [
+        'files',
+        ['file1', 'text', { es: [0, 'a'] }],
+        ['file2', { i: { name: 'foo.js' } }],
+      ];
+
+      it('should return true for text part', () => {
+        const path = ['content', 'files', 'file1', 'text'];
+        assert.deepEqual(canOpAffectPath(op, path), true);
+      });
+
+      it('should return false for non-text part', () => {
+        const path = ['content', 'files', 'file2', 'text'];
+        assert.deepEqual(canOpAffectPath(op, path), false);
       });
     });
   });
