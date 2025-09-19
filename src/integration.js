@@ -12,7 +12,7 @@ export const json1Sync = ({
   path = [],
   json1,
   textUnicode,
-  debug = false,
+  debug = true,
 }) =>
   ViewPlugin.fromClass(
     class {
@@ -22,6 +22,12 @@ export const json1Sync = ({
         this.handleOp = (op) => {
           // Do not process ops if the lock is set.
           if (this.lock) return;
+
+          if (debug) {
+            console.log(
+              'Received raw op from ShareDB: \n' + JSON.stringify(op, null, 2),
+            );
+          }
 
           // Ignore ops that are not arrays
           if (!Array.isArray(op)) return;
@@ -39,6 +45,18 @@ export const json1Sync = ({
           const opComponents = Array.isArray(op[0]) ? op : [op];
 
           for (const opComponent of opComponents) {
+            if (debug) {
+              console.log(
+                'Examining op component: \n' +
+                  JSON.stringify(opComponent, null, 2),
+              );
+              console.log(
+                'canOpAffectPath(opComponent, path): ' +
+                  canOpAffectPath(opComponent, path),
+              );
+              console.log('path: ' + JSON.stringify(path));
+            }
+
             // Ignore ops fired as a result of a change from `update` (this.lock).
             // Ignore ops that have different, irrelevant, paths (canOpAffectPath).
             if (canOpAffectPath(opComponent, path)) {
@@ -49,20 +67,29 @@ export const json1Sync = ({
 
               // Special case for multi-file ops from vizhub-fs.
               if (opComponent[0] === 'files' && Array.isArray(opComponent[1])) {
-                const fileId = path[2];
+                const filesIndex = path.indexOf('files');
+                const fileId = path[filesIndex + 1];
                 const fileOpPart = opComponent
                   .slice(1)
-                  .find((c) => Array.isArray(c) && c[0] === fileId);
+                  .find(
+                    (c) =>
+                      Array.isArray(c) && c[0] === fileId && c[1] === 'text',
+                  );
 
                 if (fileOpPart) {
                   // Reconstruct the op for a single file.
                   const singleFileOp = [...path, fileOpPart[2]];
 
                   if (debug) {
-                    console.log('Received special multi-file op from ShareDB');
-                    console.log('  op: ' + JSON.stringify(opComponent));
                     console.log(
-                      '  reconstructed op: ' + JSON.stringify(singleFileOp),
+                      'Received special multi-file op from ShareDB',
+                    );
+                    console.log(
+                      '  op: ' + JSON.stringify(opComponent, null, 2),
+                    );
+                    console.log(
+                      '  reconstructed op: ' +
+                        JSON.stringify(singleFileOp, null, 2),
                     );
                   }
                   view.dispatch({
@@ -72,11 +99,15 @@ export const json1Sync = ({
               } else {
                 if (debug) {
                   console.log('Received op from ShareDB');
-                  console.log('  op: ' + JSON.stringify(opComponent));
+                  console.log(
+                    '  op: ' + JSON.stringify(opComponent, null, 2),
+                  );
                   console.log(
                     '  generated changes: ' +
                       JSON.stringify(
                         opToChangesJSON1(opComponent, originalDoc),
+                        null,
+                        2,
                       ),
                   );
                 }
@@ -99,7 +130,9 @@ export const json1Sync = ({
           this.lock = true;
           if (debug) {
             console.log('Received change from CodeMirror');
-            console.log('  changes:' + JSON.stringify(update.changes.toJSON()));
+            console.log(
+              '  changes:' + JSON.stringify(update.changes.toJSON(), null, 2),
+            );
             console.log('  iterChanges:');
             update.changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
               console.log(
@@ -123,6 +156,8 @@ export const json1Sync = ({
                     json1,
                     textUnicode,
                   ),
+                  null,
+                  2,
                 ),
             );
           }

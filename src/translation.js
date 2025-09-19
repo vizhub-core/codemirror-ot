@@ -185,10 +185,11 @@ export const opToChangesJSON1 = (op, originalDoc = null) => {
     }
   }
 
-  for (const component of op) {
-    if (typeof component !== 'object' || component === null) {
-      continue;
-    }
+  // The op for a text document is of the form [...path, textOp].
+  // The textOp is the last element.
+  const component = op[op.length - 1];
+
+  if (typeof component === 'object' && component !== null) {
     const { es, r, i, p } = component;
     if (es !== undefined) {
       let position = 0;
@@ -206,8 +207,14 @@ export const opToChangesJSON1 = (op, originalDoc = null) => {
             typeof es[i + 1] === 'object' &&
             es[i + 1].d !== undefined
           ) {
-            let deletedText =
-              typeof es[i + 1].d === 'string' ? es[i + 1].d : '';
+            let deletedLength;
+            if (typeof es[i + 1].d === 'string') {
+              deletedLength = es[i + 1].d.length;
+            } else if (typeof es[i + 1].d === 'number') {
+              deletedLength = es[i + 1].d;
+            } else {
+              deletedLength = 0;
+            }
 
             let utf16From, utf16To;
             if (originalDoc) {
@@ -215,12 +222,12 @@ export const opToChangesJSON1 = (op, originalDoc = null) => {
               utf16From = codePointToUtf16(originalDoc, position);
               utf16To = codePointToUtf16(
                 originalDoc,
-                position + deletedText.length,
+                position + deletedLength,
               );
             } else {
               // Fallback: assume positions are the same (ASCII-only content)
               utf16From = position;
-              utf16To = position + deletedText.length;
+              utf16To = position + deletedLength;
             }
 
             changes.push({
@@ -229,7 +236,7 @@ export const opToChangesJSON1 = (op, originalDoc = null) => {
               insert: subComponent,
             });
 
-            position += deletedText.length;
+            position += deletedLength;
             i++; // Skip the next component since we've already handled it.
           } else {
             // It's a regular insertion.

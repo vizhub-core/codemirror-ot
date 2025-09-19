@@ -21,19 +21,24 @@ export const canOpAffectPath = (op, path) => {
 
   // Special case for multi-file ops from vizhub-fs.
   if (op[0] === 'files' && Array.isArray(op[1])) {
-    // Path is ['content', 'files', fileId, 'text']
+    // Path is e.g. ['content', 'files', fileId, 'text'] or ['files', fileId, 'text']
     // Op is ['files', [fileId, 'text', {...}], ...]
-    const fileId = path[2];
-    if (path[0] === 'content' && path[1] === 'files' && fileId) {
-      // The op part for a text file must be of the shape `[fileId, 'text', ...]`.
-      return op
-        .slice(1)
-        .some(
-          (fileOp) =>
-            Array.isArray(fileOp) &&
-            fileOp[0] === fileId &&
-            fileOp[1] === 'text',
-        );
+    const filesIndex = path.indexOf('files');
+    if (filesIndex !== -1) {
+      const fileId = path[filesIndex + 1];
+      const textProperty = path[filesIndex + 2];
+
+      if (fileId && textProperty === 'text') {
+        // The op part for a text file must be of the shape `[fileId, 'text', ...]`.
+        return op
+          .slice(1)
+          .some(
+            (fileOp) =>
+              Array.isArray(fileOp) &&
+              fileOp[0] === fileId &&
+              fileOp[1] === 'text',
+          );
+      }
     }
   }
 
