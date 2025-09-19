@@ -322,7 +322,7 @@ export const testIntegration = () => {
       assert.equal(environment.submittedOp, undefined);
     });
 
-    it.skip('ShareDB --> CodeMirror, move op', () => {
+    it('ShareDB --> CodeMirror, move op', () => {
       const text = 'Hello World';
       const environment = setupTestEnvironment(text);
 
@@ -458,6 +458,24 @@ export const testIntegration = () => {
       const op = null;
       const path = ['content', 'files', '2432', 'text'];
       assert.deepEqual(canOpAffectPath(op, path), false);
+    });
+
+    it('move op - source path affected', () => {
+      const moveOp = json1.moveOp(
+        ['content', 'files', '2432', 'text'],
+        ['content', 'files', '2432', 'newtext'],
+      );
+      const sourcePath = ['content', 'files', '2432', 'text'];
+      assert.deepEqual(canOpAffectPath(moveOp, sourcePath), true);
+    });
+
+    it('move op - different path not affected', () => {
+      const moveOp = json1.moveOp(
+        ['content', 'files', '2432', 'text'],
+        ['content', 'files', '2432', 'newtext'],
+      );
+      const differentPath = ['content', 'files', 'other-file', 'text'];
+      assert.deepEqual(canOpAffectPath(moveOp, differentPath), false);
     });
   });
 };
