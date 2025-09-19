@@ -218,7 +218,7 @@ export const testIntegration = () => {
       assert.equal(environment.submittedOp, undefined);
     });
 
-    it.skip('ShareDB --> CodeMirror, move op', () => {
+    it('ShareDB --> CodeMirror, move op', () => {
       const text = 'Hello World';
       const environment = setupTestEnvironment(text);
 
