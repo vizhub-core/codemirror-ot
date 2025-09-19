@@ -142,6 +142,110 @@ export const testIntegration = () => {
       assert.equal(environment.submittedOp, undefined);
     });
 
+    it('ShareDB --> CodeMirror, special multi-file op', () => {
+      const fileId = '22133515';
+      const otherFileId = '35721964';
+      const text = 'a'.repeat(305);
+      const otherText = 'b'.repeat(2000); // Just some text for the other file.
+
+      const environment = {};
+
+      createEditor({
+        shareDBDoc: {
+          data: {
+            content: {
+              files: {
+                [fileId]: { text },
+                [otherFileId]: { text: otherText },
+              },
+            },
+          },
+          submitOp: (op) => {
+            environment.submittedOp = op;
+          },
+          on: (eventName, callback) => {
+            if (eventName === 'op') {
+              environment.receiveOp = callback;
+            }
+          },
+        },
+        path: ['content', 'files', fileId, 'text'],
+        additionalExtensions: [
+          ViewPlugin.fromClass(
+            class {
+              update(update) {
+                if (update.docChanged) {
+                  environment.changes = update.changes;
+                }
+              }
+            },
+          ),
+        ],
+      });
+
+      const op = [
+        'files',
+        [
+          fileId,
+          'text',
+          {
+            es: [304, '\n'],
+          },
+        ],
+        [
+          otherFileId,
+          'text',
+          {
+            es: [
+              104,
+              {
+                d: "import { asyncRequest } from './asyncRequest.js';\n",
+              },
+              566,
+              '  setupConfigListener(state, setState);\n\n  loadConfig(configState, setConfig);\n\n  loadData(dataRequestState, configState, setDataRequest);\n\n  renderViz(container, dataRequestState, configState);\n};\n\nconst setupConfigListener = (state, setState) => {\n',
+              237,
+              '};\n\nconst loadConfig = (configState, setConfig) => {',
+              {
+                d: '\n  // Load config first if not already loaded',
+              },
+              193,
+              '}\n};\n\nconst loadData = (\n  dataRequestState,\n  configState,\n  setDataRequest,\n) => {\n  if (configState && ',
+              {
+                d: '  return;\n  }\n\n  // After config is loaded, load the data\n  if (',
+              },
+              25,
+              {
+                d: 'return ',
+              },
+              84,
+              {
+                d: '  ',
+              },
+              6,
+              '\n};\n\nconst renderViz = (\n  container,\n  dataRequestState,\n  configState,\n) => {\n  if (!configState) return;',
+              44,
+              ' || {}',
+            ],
+          },
+        ],
+      ];
+
+      // Simulate ShareDB receiving a remote op.
+      environment.receiveOp(op);
+
+      // Verify the remote op was translated to a CodeMirror change and dispatched to the editor view.
+      assert.deepEqual(
+        environment.changes.toJSON(),
+        ChangeSet.of(
+          [{ from: 304, to: 304, insert: '\n' }],
+          text.length,
+        ).toJSON(),
+      );
+
+      // Verify that the extension did _not_ submit the received ShareDB op back into ShareDB.
+      assert.equal(environment.submittedOp, undefined);
+    });
+
     it('ShareDB --> CodeMirror, null ops', () => {
       const text = 'Hello World';
       const environment = setupTestEnvironment(text);
