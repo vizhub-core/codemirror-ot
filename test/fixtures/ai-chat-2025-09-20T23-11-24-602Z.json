@@ -1,0 +1,69 @@
+{
+  "vizFilesBefore": {
+    "2f00f2ee": {
+      "name": "index.html",
+      "text": "<!DOCTYPE html>\n<html>\n  <head>\n    <title>HTML Starter</title>\n    <style>\n      .message {\n        font-size: 12em;\n        text-align: center;\n      }\n    </style>\n  </head>\n  <body>\n    <div class=\"message\">Hello HTML!</div>\n    <script>\n      console.log('hello world');\n    </script>\n  </body>\n</html>\n"
+    },
+    "bdf9faf9": {
+      "name": "README.md",
+      "text": "A bare minimum [HTML](https://en.wikipedia.org/wiki/HTML) page demonstrating use of [CSS](https://en.wikipedia.org/wiki/CSS) and [JavaScript](https://en.wikipedia.org/wiki/JavaScript).\n\nSee also [React Starter](https://vizhub.com/curran/c3b14112dae34ef395999cef5783324f)."
+    }
+  },
+  "vizFilesAfter": {
+    "2f00f2ee": {
+      "name": "index.html",
+      "text": "<!DOCTYPE html>\n<html>\n  <head>\n    <title>HTML Starter</title>\n    <link rel=\"stylesheet\" href=\"styles.css\" />\n  </head>\n  <body>\n    <div class=\"message\">Hello HTML!</div>\n    <script src=\"script.js\"></script>\n  </body>\n</html>\n"
+    },
+    "bdf9faf9": {
+      "name": "README.md",
+      "text": "A bare minimum [HTML](https://en.wikipedia.org/wiki/HTML) page demonstrating use of [CSS](https://en.wikipedia.org/wiki/CSS) and [JavaScript](https://en.wikipedia.org/wiki/JavaScript).\n\nSee also [React Starter](https://vizhub.com/curran/c3b14112dae34ef395999cef5783324f)."
+    },
+    "d2ad0cd3": {
+      "name": "styles.css",
+      "text": ".message {\n  font-size: 12em;\n  text-align: center;\n}\n"
+    },
+    "f2beab47": {
+      "name": "script.js",
+      "text": "console.log('hello world');\n"
+    }
+  },
+  "filesOp": [
+    "files",
+    [
+      "2f00f2ee",
+      "text",
+      {
+        "es": [
+          69,
+          "link rel=\"stylesheet\" href=\"styles.css\" /",
+          {
+            "d": "style>\n      .message {\n        font-size: 12em;\n        text-align: center;\n      }\n    </style"
+          },
+          75,
+          " src=\"script.js\">",
+          {
+            "d": ">\n      console.log('hello world');\n    "
+          }
+        ]
+      }
+    ],
+    [
+      "d2ad0cd3",
+      {
+        "i": {
+          "name": "styles.css",
+          "text": ".message {\n  font-size: 12em;\n  text-align: center;\n}\n"
+        }
+      }
+    ],
+    [
+      "f2beab47",
+      {
+        "i": {
+          "name": "script.js",
+          "text": "console.log('hello world');\n"
+        }
+      }
+    ]
+  ]
+}
