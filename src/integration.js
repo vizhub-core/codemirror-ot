@@ -24,7 +24,7 @@ export const json1Sync = ({
           if (this.lock) return;
 
           if (debug) {
-            console.log('V2.3');
+            console.log('V6.7');
             console.log(
               'Received raw op from ShareDB: \n' + JSON.stringify(op, null, 2),
             );
@@ -72,6 +72,18 @@ export const json1Sync = ({
               if (debug) {
                 console.log('Received op from ShareDB');
                 console.log('  op: ' + JSON.stringify(opComponent, null, 2));
+                console.log('  originalDoc: ' + JSON.stringify(originalDoc));
+                console.log(
+                  '  originalDoc length: ' +
+                    (originalDoc ? originalDoc.length : 'null'),
+                );
+                console.log(
+                  '  shareDBDoc.data: ' + JSON.stringify(shareDBDoc.data),
+                );
+                console.log(
+                  '  current editor content: ' +
+                    JSON.stringify(view.state.doc.sliceString(0)),
+                );
                 console.log(
                   '  generated changes: ' +
                     JSON.stringify(

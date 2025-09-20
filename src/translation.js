@@ -254,43 +254,27 @@ export const opToChangesJSON1 = (op, path, originalDoc = null) => {
             });
           }
         } else if (subComponent && subComponent.d !== undefined) {
+          let deletedLength;
           if (typeof subComponent.d === 'number') {
-            // It's a deletion by count.
-            let utf16From, utf16To;
-            if (originalDoc) {
-              utf16From = codePointToUtf16(originalDoc, position);
-              utf16To = codePointToUtf16(
-                originalDoc,
-                position + subComponent.d,
-              );
-            } else {
-              utf16From = position;
-              utf16To = position + subComponent.d;
-            }
-
-            changes.push({
-              from: utf16From,
-              to: utf16To,
-            });
-            position += subComponent.d;
+            deletedLength = subComponent.d;
           } else if (typeof subComponent.d === 'string') {
-            // It's a deletion of a specific string.
-            const deletedLength = [...subComponent.d].length;
-            let utf16From, utf16To;
-            if (originalDoc) {
-              utf16From = codePointToUtf16(originalDoc, position);
-              utf16To = codePointToUtf16(originalDoc, position + deletedLength);
-            } else {
-              utf16From = position;
-              utf16To = position + deletedLength;
-            }
-
-            changes.push({
-              from: utf16From,
-              to: utf16To,
-            });
-            position += deletedLength;
+            deletedLength = [...subComponent.d].length;
+          } else {
+            deletedLength = 0;
           }
+
+          // It's a deletion.
+          // For deletions, we can't rely on originalDoc for position conversion
+          // because the op was generated against a different document state.
+          // Instead, assume the positions are already correct for the current state.
+          const utf16From = position;
+          const utf16To = position + deletedLength;
+
+          changes.push({
+            from: utf16From,
+            to: utf16To,
+          });
+          position += deletedLength;
         }
       }
     } else if (r !== undefined && i !== undefined) {
