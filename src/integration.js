@@ -12,7 +12,7 @@ export const json1Sync = ({
   path = [],
   json1,
   textUnicode,
-  debug = true,
+  debug = false,
 }) =>
   ViewPlugin.fromClass(
     class {
