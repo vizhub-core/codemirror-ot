@@ -24,6 +24,7 @@ export const json1Sync = ({
           if (this.lock) return;
 
           if (debug) {
+            console.log('V2.3');
             console.log(
               'Received raw op from ShareDB: \n' + JSON.stringify(op, null, 2),
             );

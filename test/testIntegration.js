@@ -847,6 +847,15 @@ export const viz = (container, state, setState) => {
 
             assert.equal(actualText, expectedText);
 
+            // Also check the DOM content.
+            // This is a stronger check that ensures the view is in sync with the state.
+            // newlines are removed because `textContent` does not contain them,
+            // but `doc.toString()` does.
+            assert.equal(
+              view.contentDOM.textContent,
+              expectedText.replace(/\n/g, ''),
+            );
+
             // Also check that no op was submitted back.
             assert.equal(environment.submittedOp, undefined);
           });
