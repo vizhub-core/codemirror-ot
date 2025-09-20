@@ -10,9 +10,23 @@
 // Previous implementation in VizHub v2 using CodeMirror 5 and JSON0:
 // https://github.com/vizhub-core/vizhub/blob/76d4ca43a8b0f3c543919ccc66a7228d75ba37cd/vizhub-v2/packages/neoFrontend/src/pages/VizPage/Body/Editor/CodeEditor/CodeArea/CodeAreaCodeMirror5/index.js#L144
 const debug = false;
+
+// Checks if `p1` is a prefix of `p2`.
+const isPrefix = (p1, p2) => {
+  if (p1.length > p2.length) {
+    return false;
+  }
+  for (let i = 0; i < p1.length; i++) {
+    if (p1[i] !== p2[i]) {
+      return false;
+    }
+  }
+  return true;
+};
+
 export const canOpAffectPath = (op, path) => {
   // Defense
-  if (!op || !path) {
+  if (!op || !path || op.length === 0) {
     if (debug) {
       console.log('  canOpAffectPath: op or path is null');
     }
@@ -27,16 +41,13 @@ export const canOpAffectPath = (op, path) => {
     console.log('  path: ' + JSON.stringify(path));
   }
 
-  // First check if it's a regular operation that matches the path prefix
-  let isRegularOp = true;
-  for (let i = 0; i < path.length; i++) {
-    if (i >= op.length || path[i] !== op[i]) {
-      isRegularOp = false;
-      break;
-    }
-  }
+  // The path of the op is all but the last element, which is the op component.
+  const opPath = op.slice(0, -1);
 
-  if (isRegularOp) {
+  // An op can affect a path if either is a prefix of the other.
+  // This is a ShareDB / JSON0 convention that also applies to json1.
+  // See https://github.com/ottypes/json0/blob/master/lib/json0.js#L410
+  if (isPrefix(opPath, path) || isPrefix(path, opPath)) {
     if (debug) {
       console.log('    regular op matches path prefix');
     }
@@ -73,19 +84,12 @@ export const canOpAffectPath = (op, path) => {
         console.log('    dest path: ' + JSON.stringify(destFullPath));
       }
 
-      // Check if our path matches the source path (the one being moved from)
-      if (sourceFullPath.length === path.length) {
-        const sourceMatches = sourceFullPath.every(
-          (segment, i) => segment === path[i],
-        );
-        if (sourceMatches) {
-          if (debug) {
-            console.log(
-              '    matches source path - operation affects this path',
-            );
-          }
-          return true;
+      // Check if our path is the source path or a subpath of it.
+      if (isPrefix(sourceFullPath, path)) {
+        if (debug) {
+          console.log('    matches source path - operation affects this path');
         }
+        return true;
       }
 
       // For move operations, we typically only care about the source path for removal
