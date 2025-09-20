@@ -1,0 +1,27 @@
+{
+  "vizFilesBefore": {
+    "07486372": {
+      "text": "Hello world\n",
+      "name": "index.html"
+    }
+  },
+  "vizFilesAfter": {
+    "07486372": {
+      "text": "Hello\n",
+      "name": "index.html"
+    }
+  },
+  "filesOp": [
+    "files",
+    "07486372",
+    "text",
+    {
+      "es": [
+        5,
+        {
+          "d": " world"
+        }
+      ]
+    }
+  ]
+}

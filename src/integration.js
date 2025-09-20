@@ -19,12 +19,23 @@ export const json1Sync = ({
       // ShareDB --> CodeMirror
       constructor(view) {
         this.view = view;
+        this.submittedOps = new Set();
         this.handleOp = (op) => {
           // Do not process ops if the lock is set.
           if (this.lock) return;
 
+          // Check if this is our own op that we submitted
+          const opKey = JSON.stringify(op);
+          if (this.submittedOps.has(opKey)) {
+            this.submittedOps.delete(opKey);
+            if (debug) {
+              console.log('Ignoring own op echoed back from ShareDB');
+            }
+            return;
+          }
+
           if (debug) {
-            console.log('V6.7');
+            console.log('V+WTF');
             console.log(
               'Received raw op from ShareDB: \n' + JSON.stringify(op, null, 2),
             );
@@ -64,37 +75,34 @@ export const json1Sync = ({
             // Ignore ops fired as a result of a change from `update` (this.lock).
             // Ignore ops that have different, irrelevant, paths (canOpAffectPath).
             if (canOpAffectPath(opComponent, path)) {
-              const originalDoc = path.reduce(
-                (obj, key) => obj && obj[key],
-                shareDBDoc.data,
-              );
+              // Use current editor content for position calculations
+              const currentEditorContent = view.state.doc.sliceString(0);
 
               if (debug) {
                 console.log('Received op from ShareDB');
                 console.log('  op: ' + JSON.stringify(opComponent, null, 2));
-                console.log('  originalDoc: ' + JSON.stringify(originalDoc));
-                console.log(
-                  '  originalDoc length: ' +
-                    (originalDoc ? originalDoc.length : 'null'),
-                );
-                console.log(
-                  '  shareDBDoc.data: ' + JSON.stringify(shareDBDoc.data),
-                );
                 console.log(
                   '  current editor content: ' +
-                    JSON.stringify(view.state.doc.sliceString(0)),
+                    JSON.stringify(currentEditorContent),
+                );
+                console.log(
+                  '  current editor length: ' + currentEditorContent.length,
                 );
                 console.log(
                   '  generated changes: ' +
                     JSON.stringify(
-                      opToChangesJSON1(opComponent, path, originalDoc),
+                      opToChangesJSON1(opComponent, path, currentEditorContent),
                       null,
                       2,
                     ),
                 );
               }
               view.dispatch({
-                changes: opToChangesJSON1(opComponent, path, originalDoc),
+                changes: opToChangesJSON1(
+                  opComponent,
+                  path,
+                  currentEditorContent,
+                ),
               });
             }
           }
@@ -109,6 +117,14 @@ export const json1Sync = ({
         // Ignore updates that do not change the doc (update.docChanged).
         if (!this.lock && update.docChanged) {
           this.lock = true;
+          const op = changesToOpJSON1(
+            path,
+            update.changes,
+            update.startState.doc,
+            json1,
+            textUnicode,
+          );
+
           if (debug) {
             console.log('Received change from CodeMirror');
             console.log(
@@ -127,30 +143,19 @@ export const json1Sync = ({
                   }),
               );
             });
-            console.log(
-              '  generated json1 op: ' +
-                JSON.stringify(
-                  changesToOpJSON1(
-                    path,
-                    update.changes,
-                    update.startState.doc,
-                    json1,
-                    textUnicode,
-                  ),
-                  null,
-                  2,
-                ),
-            );
+            console.log('  generated json1 op: ' + JSON.stringify(op, null, 2));
           }
-          shareDBDoc.submitOp(
-            changesToOpJSON1(
-              path,
-              update.changes,
-              update.startState.doc,
-              json1,
-              textUnicode,
-            ),
-          );
+
+          // Track this op so we can ignore it when it echoes back
+          if (op) {
+            const opKey = JSON.stringify(op);
+            this.submittedOps.add(opKey);
+            if (debug) {
+              console.log('Tracking submitted op: ' + opKey);
+            }
+          }
+
+          shareDBDoc.submitOp(op);
           this.lock = false;
         }
       }
