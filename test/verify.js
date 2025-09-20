@@ -12,7 +12,7 @@ import {
   opToChangesJSON1,
 } from '../src/index';
 
-const atPath = (obj, path) => path.reduce((d, key) => d[key], obj);
+export const atPath = (obj, path) => path.reduce((d, key) => d[key], obj);
 const clone = (obj) => JSON.parse(JSON.stringify(obj));
 const diffJSON0 = (a, b) => jsondiff(a, b, diffMatchPatch);
 const diffJSON1 = (a, b) => jsondiff(a, b, diffMatchPatch, json1, textUnicode);
@@ -20,15 +20,27 @@ const diffJSON1 = (a, b) => jsondiff(a, b, diffMatchPatch, json1, textUnicode);
 // Verifies that ops and transaction match in terms of behavior,
 // and that the translation between ops and transaction holds in both directions.
 export const verify = (options) => {
-  const { before, after, changes, opJSON0, opJSON1, path = [] } = options;
+  const {
+    before,
+    after,
+    changes,
+    opJSON0,
+    opJSON1,
+    opJSON1ForChanges,
+    path = [],
+  } = options;
+  const opForChangeTranslation =
+    opJSON1ForChanges !== undefined ? opJSON1ForChanges : opJSON1;
 
-  it('JSON0 op should match computed diff', () => {
-    if (!opJSON0) {
-      console.log(`opJSON0: ${JSON.stringify(diffJSON0(before, after))},`);
-      process.exit();
-    }
-    assert.deepEqual(opJSON0, diffJSON0(before, after));
-  });
+  if (opJSON0 !== undefined) {
+    it('JSON0 op should match computed diff', () => {
+      if (!opJSON0) {
+        console.log(`opJSON0: ${JSON.stringify(diffJSON0(before, after))},`);
+        process.exit();
+      }
+      assert.deepEqual(opJSON0, diffJSON0(before, after));
+    });
+  }
 
   it('JSON1 op should match computed diff', () => {
     if (opJSON1 === undefined) {
@@ -52,16 +64,20 @@ export const verify = (options) => {
 
     assert.deepEqual(opJSON1, diffJSON1(before, after));
   });
-  it('JSON0 applied op should match expected text', () => {
-    assert.deepEqual(after, json0.type.apply(clone(before), opJSON0));
-  });
+  if (opJSON0 !== undefined) {
+    it('JSON0 applied op should match expected text', () => {
+      assert.deepEqual(after, json0.type.apply(clone(before), opJSON0));
+    });
+  }
 
-  it('JSON0 inverted applied op should match expected text', () => {
-    assert.deepEqual(
-      before,
-      json0.type.apply(clone(after), json0.type.invert(opJSON0)),
-    );
-  });
+  if (opJSON0 !== undefined) {
+    it('JSON0 inverted applied op should match expected text', () => {
+      assert.deepEqual(
+        before,
+        json0.type.apply(clone(after), json0.type.invert(opJSON0)),
+      );
+    });
+  }
 
   it('JSON1 applied op should match expected text', () => {
     if (opJSON1 !== null) {
@@ -79,37 +95,46 @@ export const verify = (options) => {
     );
   });
 
-  it('opToChangesJSON0', () => {
-    if (!changes) {
-      console.log(
-        `changes: ${JSON.stringify(opToChangesJSON0(opJSON0))}, // from json0`,
-      );
-      console.log(
-        `changes: ${JSON.stringify(opToChangesJSON1(opJSON1))}, // from json1`,
-      );
-      process.exit();
-    }
-    assert.deepEqual(opToChangesJSON0(opJSON0), changes);
-  });
+  if (opJSON0 !== undefined) {
+    it('opToChangesJSON0', () => {
+      if (!changes) {
+        console.log(
+          `changes: ${JSON.stringify(opToChangesJSON0(opJSON0))}, // from json0`,
+        );
+        console.log(
+          `changes: ${JSON.stringify(
+            opToChangesJSON1(opJSON1, atPath(before, path)),
+          )}, // from json1`,
+        );
+        process.exit();
+      }
+      assert.deepEqual(opToChangesJSON0(opJSON0), changes);
+    });
+  }
 
   it('opToChangesJSON1', () => {
     const originalDoc =
       typeof before === 'string' ? before : atPath(before, path);
-    assert.deepEqual(opToChangesJSON1(opJSON1, originalDoc), changes);
+    assert.deepEqual(
+      opToChangesJSON1(opForChangeTranslation, originalDoc),
+      changes,
+    );
   });
 
-  it('changesToOpJSON0', () => {
-    const state = EditorState.create({ doc: atPath(before, path) });
-    const changeSet = ChangeSet.of(changes, before.length);
-    assert.deepEqual(changesToOpJSON0(path, changeSet, state.doc), opJSON0);
-  });
+  if (opJSON0 !== undefined) {
+    it('changesToOpJSON0', () => {
+      const state = EditorState.create({ doc: atPath(before, path) });
+      const changeSet = ChangeSet.of(changes, atPath(before, path).length);
+      assert.deepEqual(changesToOpJSON0(path, changeSet, state.doc), opJSON0);
+    });
+  }
 
   it('changesToOpJSON1', () => {
     const state = EditorState.create({ doc: atPath(before, path) });
     const changeSet = ChangeSet.of(changes, atPath(before, path).length);
     assert.deepEqual(
       changesToOpJSON1(path, changeSet, state.doc, json1, textUnicode),
-      opJSON1,
+      opForChangeTranslation,
     );
   });
 
