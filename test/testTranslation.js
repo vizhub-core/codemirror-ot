@@ -416,6 +416,7 @@ describe('real world multi-file ops from fixtures', () => {
           before,
           after,
           opJSON1: filesOp,
+          opJSON1ForChanges: reconstructedOp,
           path: testPath,
           changes,
         });
