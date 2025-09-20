@@ -20,17 +20,7 @@ const diffJSON1 = (a, b) => jsondiff(a, b, diffMatchPatch, json1, textUnicode);
 // Verifies that ops and transaction match in terms of behavior,
 // and that the translation between ops and transaction holds in both directions.
 export const verify = (options) => {
-  const {
-    before,
-    after,
-    changes,
-    opJSON0,
-    opJSON1,
-    opJSON1ForChanges,
-    path = [],
-  } = options;
-  const opForChangeTranslation =
-    opJSON1ForChanges !== undefined ? opJSON1ForChanges : opJSON1;
+  const { before, after, changes, opJSON0, opJSON1, path = [] } = options;
 
   if (opJSON0 !== undefined) {
     it('JSON0 op should match computed diff', () => {
@@ -115,10 +105,7 @@ export const verify = (options) => {
   it('opToChangesJSON1', () => {
     const originalDoc =
       typeof before === 'string' ? before : atPath(before, path);
-    assert.deepEqual(
-      opToChangesJSON1(opForChangeTranslation, originalDoc),
-      changes,
-    );
+    assert.deepEqual(opToChangesJSON1(opJSON1, path, originalDoc), changes);
   });
 
   if (opJSON0 !== undefined) {
@@ -132,10 +119,32 @@ export const verify = (options) => {
   it('changesToOpJSON1', () => {
     const state = EditorState.create({ doc: atPath(before, path) });
     const changeSet = ChangeSet.of(changes, atPath(before, path).length);
-    assert.deepEqual(
-      changesToOpJSON1(path, changeSet, state.doc, json1, textUnicode),
-      opForChangeTranslation,
+    const generatedOp = changesToOpJSON1(
+      path,
+      changeSet,
+      state.doc,
+      json1,
+      textUnicode,
     );
+
+    const isMultiFileOp =
+      opJSON1 && opJSON1[0] === 'files' && Array.isArray(opJSON1[1]);
+
+    if (isMultiFileOp) {
+      // For multi-file ops, we can't compare the generated op directly
+      // with the original multi-file op. Instead, we apply the generated
+      // op and check if the resulting document content matches what's expected.
+      if (generatedOp) {
+        const result = json1.type.apply(clone(before), generatedOp);
+        assert.deepEqual(atPath(result, path), atPath(after, path));
+      } else {
+        // If no op is generated, the content should be unchanged.
+        assert.deepEqual(atPath(before, path), atPath(after, path));
+      }
+    } else {
+      // For single-file ops, we can do a direct comparison.
+      assert.deepEqual(generatedOp, opJSON1);
+    }
   });
 
   it('applied changes should match expected text', () => {

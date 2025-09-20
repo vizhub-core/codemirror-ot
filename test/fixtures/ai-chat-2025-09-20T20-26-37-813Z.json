@@ -1,0 +1,69 @@
+{
+  "vizFilesBefore": {
+    "48704367": {
+      "text": "A bare minimum [HTML](https://en.wikipedia.org/wiki/HTML)\npage demonstrating use of\n[CSS](https://en.wikipedia.org/wiki/CSS) and\n[JavaScript](https://en.wikipedia.org/wiki/JavaScript).\n\nSee also\n[React Starter](https://vizhub.com/curran/c3b14112dae34ef395999cef5783324f).\n",
+      "name": "README.md"
+    },
+    "83215854": {
+      "text": "<!DOCTYPE html>\n<html>\n  <head>\n    <title>HTML Starter</title>\n    <style>\n      .message {\n        font-size: 12em;\n        text-align: center;\n      }\n    </style>\n  </head>\n  <body>\n    <div class=\"message\">Hello HTML!</div>\n    <script>\n      console.log('hello world');\n    </script>\n  </body>\n</html>\n",
+      "name": "index.html"
+    }
+  },
+  "vizFilesAfter": {
+    "48704367": {
+      "text": "A bare minimum [HTML](https://en.wikipedia.org/wiki/HTML)\npage demonstrating use of\n[CSS](https://en.wikipedia.org/wiki/CSS) and\n[JavaScript](https://en.wikipedia.org/wiki/JavaScript).\n\nSee also\n[React Starter](https://vizhub.com/curran/c3b14112dae34ef395999cef5783324f).\n",
+      "name": "README.md"
+    },
+    "83215854": {
+      "text": "<!DOCTYPE html>\n<html>\n  <head>\n    <title>HTML Starter</title>\n    <link rel=\"stylesheet\" href=\"styles.css\" />\n  </head>\n  <body>\n    <div class=\"message\">Hello HTML!</div>\n    <script src=\"script.js\"></script>\n  </body>\n</html>\n",
+      "name": "index.html"
+    },
+    "9443e112": {
+      "name": "styles.css",
+      "text": "body {\n  background-color: #121212;\n  color: #e0e0e0;\n}\n\n.message {\n  font-size: 12em;\n  text-align: center;\n  color: #ffffff;\n}\n"
+    },
+    "16811fce": {
+      "name": "script.js",
+      "text": "console.log('hello world');\n"
+    }
+  },
+  "filesOp": [
+    "files",
+    [
+      "16811fce",
+      {
+        "i": {
+          "name": "script.js",
+          "text": "console.log('hello world');\n"
+        }
+      }
+    ],
+    [
+      "83215854",
+      "text",
+      {
+        "es": [
+          69,
+          "link rel=\"stylesheet\" href=\"styles.css\" /",
+          {
+            "d": "style>\n      .message {\n        font-size: 12em;\n        text-align: center;\n      }\n    </style"
+          },
+          75,
+          " src=\"script.js\">",
+          {
+            "d": ">\n      console.log('hello world');\n    "
+          }
+        ]
+      }
+    ],
+    [
+      "9443e112",
+      {
+        "i": {
+          "name": "styles.css",
+          "text": "body {\n  background-color: #121212;\n  color: #e0e0e0;\n}\n\n.message {\n  font-size: 12em;\n  text-align: center;\n  color: #ffffff;\n}\n"
+        }
+      }
+    ]
+  ]
+}

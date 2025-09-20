@@ -7,9 +7,33 @@ import { JSDOM } from 'jsdom';
 import * as fs from 'fs';
 import * as path from 'path';
 import ShareDB from 'sharedb';
+import { html } from '@codemirror/lang-html';
+import { javascript, javascriptLanguage } from '@codemirror/lang-javascript';
+import { css, cssLanguage } from '@codemirror/lang-css';
 import { json1Sync, canOpAffectPath, reconstructOp } from '../src/index';
 
 ShareDB.types.register(json1.type);
+
+const htmlConfig = {
+  matchClosingTags: true,
+  selfClosingTags: false,
+  autoCloseTags: true,
+  extraTags: {},
+  extraGlobalAttributes: {},
+  nestedLanguages: [
+    {
+      tag: 'script',
+      language: javascript,
+      parser: javascriptLanguage.parser,
+    },
+    {
+      tag: 'style',
+      language: css,
+      parser: cssLanguage.parser,
+    },
+  ],
+  nestedAttributes: [],
+};
 
 // Gets a value at a path in a ShareDB Doc.
 const getAtPath = (shareDBDoc, path) =>
@@ -28,8 +52,8 @@ const { window } = new JSDOM('');
 // See https://github.com/codemirror/view/blob/main/src/editorview.ts#L119
 // this.win is used for requestAnimationFrame
 global.window.requestAnimationFrame = (f) => setTimeout(f, 0);
-// this.win is _not_ used for cancelAnimationFrame
-global.cancelAnimationFrame = () => {};
+// this.win is also used for cancelAnimationFrame
+global.window.cancelAnimationFrame = () => {};
 
 // Creates a new CodeMirror EditorView with the json1Sync extension set up.
 const createEditor = ({ shareDBDoc, path, additionalExtensions = [] }) => {
@@ -837,6 +861,7 @@ export const viz = (container, state, setState) => {
             view = createEditor({
               shareDBDoc,
               path: testPath,
+              additionalExtensions: [html(htmlConfig)],
             });
 
             // Simulate ShareDB receiving a remote op.
@@ -846,6 +871,26 @@ export const viz = (container, state, setState) => {
             const actualText = view.state.doc.toString();
 
             assert.equal(actualText, expectedText);
+
+            // Also check the DOM content.
+            // This is a stronger check that ensures the view is in sync with the state.
+            // newlines are removed because `textContent` does not contain them,
+            // but `doc.toString()` does.
+            assert.equal(
+              view.contentDOM.textContent,
+              expectedText.replace(/\n/g, ''),
+            );
+
+            // Check for mangled HTML in the innerHTML.
+            // This is a stronger check that can catch issues
+            // that `textContent` misses.
+            const innerHTML = view.contentDOM.innerHTML;
+            const isMangled = innerHTML.includes('</span>&gt;');
+            assert.strictEqual(
+              isMangled,
+              false,
+              'The editor content appears to be mangled.',
+            );
 
             // Also check that no op was submitted back.
             assert.equal(environment.submittedOp, undefined);
@@ -990,13 +1035,22 @@ export const viz = (container, state, setState) => {
     });
 
     describe('special multi-file op', () => {
-      it('should return false for special multi-file op', () => {
+      it('should return true for an affecting special multi-file op', () => {
         const op = [
           'files',
           ['file1', 'text', { es: [0, 'a'] }],
           ['file2', 'text', { es: [0, 'b'] }],
         ];
         const path = ['content', 'files', 'file1', 'text'];
+        assert.deepEqual(canOpAffectPath(op, path), true);
+      });
+      it('should return false for a non-affecting special multi-file op', () => {
+        const op = [
+          'files',
+          ['file1', 'text', { es: [0, 'a'] }],
+          ['file2', 'text', { es: [0, 'b'] }],
+        ];
+        const path = ['content', 'files', 'file3', 'text'];
         assert.deepEqual(canOpAffectPath(op, path), false);
       });
     });

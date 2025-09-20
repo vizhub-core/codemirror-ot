@@ -1,7 +1,6 @@
 import { ViewPlugin } from '@codemirror/view';
 import { changesToOpJSON1, opToChangesJSON1 } from './translation';
 import { canOpAffectPath } from './canOpAffectPath';
-import { reconstructOp } from './fileOp';
 
 // Inspired by:
 // https://github.com/codemirror/collab/blob/main/src/collab.ts
@@ -25,6 +24,7 @@ export const json1Sync = ({
           if (this.lock) return;
 
           if (debug) {
+            console.log('V6.7');
             console.log(
               'Received raw op from ShareDB: \n' + JSON.stringify(op, null, 2),
             );
@@ -53,13 +53,7 @@ export const json1Sync = ({
               );
             }
 
-            opComponent = reconstructOp(opComponent, path);
-
             if (debug) {
-              console.log(
-                'Reconstructed op component: \n' +
-                  JSON.stringify(opComponent, null, 2),
-              );
               console.log(
                 'canOpAffectPath(opComponent, path): ' +
                   canOpAffectPath(opComponent, path),
@@ -78,17 +72,29 @@ export const json1Sync = ({
               if (debug) {
                 console.log('Received op from ShareDB');
                 console.log('  op: ' + JSON.stringify(opComponent, null, 2));
+                console.log('  originalDoc: ' + JSON.stringify(originalDoc));
+                console.log(
+                  '  originalDoc length: ' +
+                    (originalDoc ? originalDoc.length : 'null'),
+                );
+                console.log(
+                  '  shareDBDoc.data: ' + JSON.stringify(shareDBDoc.data),
+                );
+                console.log(
+                  '  current editor content: ' +
+                    JSON.stringify(view.state.doc.sliceString(0)),
+                );
                 console.log(
                   '  generated changes: ' +
                     JSON.stringify(
-                      opToChangesJSON1(opComponent, originalDoc),
+                      opToChangesJSON1(opComponent, path, originalDoc),
                       null,
                       2,
                     ),
                 );
               }
               view.dispatch({
-                changes: opToChangesJSON1(opComponent, originalDoc),
+                changes: opToChangesJSON1(opComponent, path, originalDoc),
               });
             }
           }
