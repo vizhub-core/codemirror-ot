@@ -1,7 +1,10 @@
 import * as assert from 'assert';
 import json1 from 'ot-json1';
 import textUnicode from 'ot-text-unicode';
-import { verify } from './verify';
+import { verify, atPath } from './verify';
+import * as fs from 'fs';
+import * as path from 'path';
+import { reconstructOp, opToChangesJSON1 } from '../src/index';
 
 export const testTranslation = () => {
   describe('string insert', () => {
@@ -371,3 +374,52 @@ export const testTranslation = () => {
 // They do interesting things with randomness.
 // They also cover the case of a CodeMirror change
 // containing multiple changes, which these tests currently do not.
+
+describe('real world multi-file ops from fixtures', () => {
+  const fixturesDir = path.join(__dirname, '..', '..', 'test', 'fixtures');
+  const fixtureFiles = fs.readdirSync(fixturesDir);
+
+  fixtureFiles.forEach((file) => {
+    if (path.extname(file) === '.json') {
+      describe(`fixture: ${file}`, () => {
+        const fixturePath = path.join(fixturesDir, file);
+        const fixture = JSON.parse(fs.readFileSync(fixturePath, 'utf-8'));
+
+        const { vizFilesBefore, vizFilesAfter, filesOp } = fixture;
+
+        const findFileId = (files) => {
+          for (const id in files) {
+            if (files[id].name === 'index.html') {
+              return id;
+            }
+          }
+        };
+
+        const fileId = findFileId(vizFilesBefore);
+
+        // If no index.html, skip.
+        if (!fileId) {
+          return;
+        }
+
+        const testPath = ['files', fileId, 'text'];
+
+        const before = { files: vizFilesBefore };
+        const after = { files: vizFilesAfter };
+
+        const reconstructedOp = reconstructOp(filesOp, testPath);
+
+        const originalDoc = atPath(before, testPath);
+        const changes = opToChangesJSON1(reconstructedOp, originalDoc);
+
+        verify({
+          before,
+          after,
+          opJSON1: filesOp,
+          path: testPath,
+          changes,
+        });
+      });
+    }
+  });
+});
