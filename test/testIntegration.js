@@ -4,6 +4,8 @@ import textUnicode from 'ot-text-unicode';
 import { EditorState, ChangeSet } from '@codemirror/state';
 import { EditorView, ViewPlugin } from '@codemirror/view';
 import { JSDOM } from 'jsdom';
+import * as fs from 'fs';
+import * as path from 'path';
 import ShareDB from 'sharedb';
 import { json1Sync, canOpAffectPath, reconstructOp } from '../src/index';
 
@@ -786,6 +788,70 @@ export const viz = (container, state, setState) => {
       );
 
       assert.equal(environment.submittedOp, undefined);
+    });
+
+    describe('Fixtures', () => {
+      const fixturesDir = path.join(__dirname, '..', '..', 'test', 'fixtures');
+      const fixtureFiles = fs.readdirSync(fixturesDir);
+
+      const findFileId = (files) => {
+        for (const id in files) {
+          if (files[id].name === 'index.html') {
+            return id;
+          }
+        }
+      };
+
+      fixtureFiles.forEach((file) => {
+        if (path.extname(file) === '.json') {
+          it(`should handle fixture: ${file}`, () => {
+            const fixturePath = path.join(fixturesDir, file);
+            const fixture = JSON.parse(fs.readFileSync(fixturePath, 'utf-8'));
+
+            const { vizFilesBefore, vizFilesAfter, filesOp } = fixture;
+
+            const fileId = findFileId(vizFilesBefore);
+
+            // If no index.html, skip.
+            if (!fileId) {
+              return;
+            }
+
+            const testPath = ['files', fileId, 'text'];
+
+            const environment = {};
+            let view;
+
+            const shareDBDoc = {
+              data: { files: vizFilesBefore },
+              submitOp: (op) => {
+                environment.submittedOp = op;
+              },
+              on: (eventName, callback) => {
+                if (eventName === 'op') {
+                  environment.receiveOp = callback;
+                }
+              },
+            };
+
+            view = createEditor({
+              shareDBDoc,
+              path: testPath,
+            });
+
+            // Simulate ShareDB receiving a remote op.
+            environment.receiveOp(filesOp);
+
+            const expectedText = vizFilesAfter[fileId].text;
+            const actualText = view.state.doc.toString();
+
+            assert.equal(actualText, expectedText);
+
+            // Also check that no op was submitted back.
+            assert.equal(environment.submittedOp, undefined);
+          });
+        }
+      });
     });
   });
 
