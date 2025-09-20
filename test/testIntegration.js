@@ -990,13 +990,22 @@ export const viz = (container, state, setState) => {
     });
 
     describe('special multi-file op', () => {
-      it('should return false for special multi-file op', () => {
+      it('should return true for an affecting special multi-file op', () => {
         const op = [
           'files',
           ['file1', 'text', { es: [0, 'a'] }],
           ['file2', 'text', { es: [0, 'b'] }],
         ];
         const path = ['content', 'files', 'file1', 'text'];
+        assert.deepEqual(canOpAffectPath(op, path), true);
+      });
+      it('should return false for a non-affecting special multi-file op', () => {
+        const op = [
+          'files',
+          ['file1', 'text', { es: [0, 'a'] }],
+          ['file2', 'text', { es: [0, 'b'] }],
+        ];
+        const path = ['content', 'files', 'file3', 'text'];
         assert.deepEqual(canOpAffectPath(op, path), false);
       });
     });

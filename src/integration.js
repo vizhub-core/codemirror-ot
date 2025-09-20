@@ -1,7 +1,6 @@
 import { ViewPlugin } from '@codemirror/view';
 import { changesToOpJSON1, opToChangesJSON1 } from './translation';
 import { canOpAffectPath } from './canOpAffectPath';
-import { reconstructOp } from './fileOp';
 
 // Inspired by:
 // https://github.com/codemirror/collab/blob/main/src/collab.ts
@@ -13,7 +12,7 @@ export const json1Sync = ({
   path = [],
   json1,
   textUnicode,
-  debug = false,
+  debug = true,
 }) =>
   ViewPlugin.fromClass(
     class {
@@ -53,13 +52,7 @@ export const json1Sync = ({
               );
             }
 
-            opComponent = reconstructOp(opComponent, path);
-
             if (debug) {
-              console.log(
-                'Reconstructed op component: \n' +
-                  JSON.stringify(opComponent, null, 2),
-              );
               console.log(
                 'canOpAffectPath(opComponent, path): ' +
                   canOpAffectPath(opComponent, path),
