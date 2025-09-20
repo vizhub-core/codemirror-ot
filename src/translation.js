@@ -157,8 +157,11 @@ export const opToChangesJSON0 = (op) => {
   return changes;
 };
 
+import { reconstructOp } from './fileOp';
+
 // Converts a json1 OT op to a CodeMirror ChangeSet.
-export const opToChangesJSON1 = (op, originalDoc = null) => {
+export const opToChangesJSON1 = (op, path, originalDoc = null) => {
+  op = reconstructOp(op, path);
   if (!op) return [];
   const changes = [];
 

@@ -4,7 +4,7 @@ import textUnicode from 'ot-text-unicode';
 import { verify, atPath } from './verify';
 import * as fs from 'fs';
 import * as path from 'path';
-import { reconstructOp, opToChangesJSON1 } from '../src/index';
+import { opToChangesJSON1 } from '../src/index';
 
 export const testTranslation = () => {
   describe('string insert', () => {
@@ -407,16 +407,13 @@ describe('real world multi-file ops from fixtures', () => {
         const before = { files: vizFilesBefore };
         const after = { files: vizFilesAfter };
 
-        const reconstructedOp = reconstructOp(filesOp, testPath);
-
         const originalDoc = atPath(before, testPath);
-        const changes = opToChangesJSON1(reconstructedOp, originalDoc);
+        const changes = opToChangesJSON1(filesOp, testPath, originalDoc);
 
         verify({
           before,
           after,
           opJSON1: filesOp,
-          opJSON1ForChanges: reconstructedOp,
           path: testPath,
           changes,
         });

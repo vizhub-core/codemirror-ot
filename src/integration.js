@@ -81,14 +81,14 @@ export const json1Sync = ({
                 console.log(
                   '  generated changes: ' +
                     JSON.stringify(
-                      opToChangesJSON1(opComponent, originalDoc),
+                      opToChangesJSON1(opComponent, path, originalDoc),
                       null,
                       2,
                     ),
                 );
               }
               view.dispatch({
-                changes: opToChangesJSON1(opComponent, originalDoc),
+                changes: opToChangesJSON1(opComponent, path, originalDoc),
               });
             }
           }

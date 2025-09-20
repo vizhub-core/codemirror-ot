@@ -20,17 +20,7 @@ const diffJSON1 = (a, b) => jsondiff(a, b, diffMatchPatch, json1, textUnicode);
 // Verifies that ops and transaction match in terms of behavior,
 // and that the translation between ops and transaction holds in both directions.
 export const verify = (options) => {
-  const {
-    before,
-    after,
-    changes,
-    opJSON0,
-    opJSON1,
-    opJSON1ForChanges,
-    path = [],
-  } = options;
-  const opForChangeTranslation =
-    opJSON1ForChanges !== undefined ? opJSON1ForChanges : opJSON1;
+  const { before, after, changes, opJSON0, opJSON1, path = [] } = options;
 
   if (opJSON0 !== undefined) {
     it('JSON0 op should match computed diff', () => {
@@ -115,10 +105,7 @@ export const verify = (options) => {
   it('opToChangesJSON1', () => {
     const originalDoc =
       typeof before === 'string' ? before : atPath(before, path);
-    assert.deepEqual(
-      opToChangesJSON1(opForChangeTranslation, originalDoc),
-      changes,
-    );
+    assert.deepEqual(opToChangesJSON1(opJSON1, path, originalDoc), changes);
   });
 
   if (opJSON0 !== undefined) {
@@ -134,7 +121,7 @@ export const verify = (options) => {
     const changeSet = ChangeSet.of(changes, atPath(before, path).length);
     assert.deepEqual(
       changesToOpJSON1(path, changeSet, state.doc, json1, textUnicode),
-      opForChangeTranslation,
+      opJSON1,
     );
   });
 
