@@ -311,6 +311,105 @@ export const testTranslation = () => {
         opJSON1: json1.editOp([], 'text-unicode', textUnicode.insert(5, ' 🌍')),
       });
     });
+    describe('flag emoji insert', () => {
+      verify({
+        before: 'Norway: ',
+        after: 'Norway: 🇳🇴',
+        changes: [{ from: 8, to: 8, insert: '🇳🇴' }],
+        opJSON0: [{ p: [8], si: '🇳🇴' }],
+        opJSON1: json1.editOp([], 'text-unicode', textUnicode.insert(8, '🇳🇴')),
+      });
+    });
+    describe('flag emoji replacement', () => {
+      verify({
+        before: 'Country: 🇳🇴',
+        after: 'Country: 🇩🇪',
+        changes: [{ from: 9, to: 13, insert: '🇩🇪' }],
+        opJSON0: [
+          { p: [9], sd: '🇳🇴' },
+          { p: [9], si: '🇩🇪' },
+        ],
+        opJSON1: json1.editOp(
+          [],
+          'text-unicode',
+          textUnicode.type.compose(
+            textUnicode.remove(9, '🇳🇴'),
+            textUnicode.insert(9, '🇩🇪'),
+          ),
+        ),
+      });
+    });
+    describe('multiple flag emojis insert', () => {
+      verify({
+        before: 'Flags: ',
+        after: 'Flags: 🇳🇴 🇩🇪 🇺🇸',
+        changes: [{ from: 7, to: 7, insert: '🇳🇴 🇩🇪 🇺🇸' }],
+        opJSON0: [{ p: [7], si: '🇳🇴 🇩🇪 🇺🇸' }],
+        opJSON1: json1.editOp(
+          [],
+          'text-unicode',
+          textUnicode.insert(7, '🇳🇴 🇩🇪 🇺🇸'),
+        ),
+      });
+    });
+    describe('flag emoji in JSON-like text', () => {
+      verify({
+        before: '',
+        after:
+          'export default [\n  { "country": "Norway", "flag": "🇳🇴" },\n  { "country": "Germany", "flag": "🇩🇪" },\n]',
+        changes: [
+          {
+            from: 0,
+            to: 0,
+            insert:
+              'export default [\n  { "country": "Norway", "flag": "🇳🇴" },\n  { "country": "Germany", "flag": "🇩🇪" },\n]',
+          },
+        ],
+        opJSON0: [
+          {
+            p: [0],
+            si: 'export default [\n  { "country": "Norway", "flag": "🇳🇴" },\n  { "country": "Germany", "flag": "🇩🇪" },\n]',
+          },
+        ],
+        opJSON1: json1.editOp(
+          [],
+          'text-unicode',
+          textUnicode.insert(
+            0,
+            'export default [\n  { "country": "Norway", "flag": "🇳🇴" },\n  { "country": "Germany", "flag": "🇩🇪" },\n]',
+          ),
+        ),
+      });
+    });
+    describe('complete flag list from issue', () => {
+      verify({
+        before: '',
+        after:
+          'export default [\n  { "country": "Norway", "flag": "🇳🇴" },\n  { "country": "Germany", "flag": "🇩🇪" },\n  { "country": "USA", "flag": "🇺🇸" },\n  { "country": "China", "flag": "🇨🇳" },\n  { "country": "Sweden", "flag": "🇸🇪" },\n  { "country": "Netherlands", "flag": "🇳🇱" },\n  { "country": "Austria", "flag": "🇦🇹" },\n  { "country": "Switzerland", "flag": "🇨🇭" },\n  { "country": "ROC", "flag": "🏳️" },\n  { "country": "France", "flag": "🇫🇷" },\n  { "country": "Canada", "flag": "🇨🇦" },\n  { "country": "Japan", "flag": "🇯🇵" },\n  { "country": "Italy", "flag": "🇮🇹" },\n  { "country": "South Korea", "flag": "🇰🇷" },\n  { "country": "Hungary", "flag": "🇭🇺" }\n]',
+        changes: [
+          {
+            from: 0,
+            to: 0,
+            insert:
+              'export default [\n  { "country": "Norway", "flag": "🇳🇴" },\n  { "country": "Germany", "flag": "🇩🇪" },\n  { "country": "USA", "flag": "🇺🇸" },\n  { "country": "China", "flag": "🇨🇳" },\n  { "country": "Sweden", "flag": "🇸🇪" },\n  { "country": "Netherlands", "flag": "🇳🇱" },\n  { "country": "Austria", "flag": "🇦🇹" },\n  { "country": "Switzerland", "flag": "🇨🇭" },\n  { "country": "ROC", "flag": "🏳️" },\n  { "country": "France", "flag": "🇫🇷" },\n  { "country": "Canada", "flag": "🇨🇦" },\n  { "country": "Japan", "flag": "🇯🇵" },\n  { "country": "Italy", "flag": "🇮🇹" },\n  { "country": "South Korea", "flag": "🇰🇷" },\n  { "country": "Hungary", "flag": "🇭🇺" }\n]',
+          },
+        ],
+        opJSON0: [
+          {
+            p: [0],
+            si: 'export default [\n  { "country": "Norway", "flag": "🇳🇴" },\n  { "country": "Germany", "flag": "🇩🇪" },\n  { "country": "USA", "flag": "🇺🇸" },\n  { "country": "China", "flag": "🇨🇳" },\n  { "country": "Sweden", "flag": "🇸🇪" },\n  { "country": "Netherlands", "flag": "🇳🇱" },\n  { "country": "Austria", "flag": "🇦🇹" },\n  { "country": "Switzerland", "flag": "🇨🇭" },\n  { "country": "ROC", "flag": "🏳️" },\n  { "country": "France", "flag": "🇫🇷" },\n  { "country": "Canada", "flag": "🇨🇦" },\n  { "country": "Japan", "flag": "🇯🇵" },\n  { "country": "Italy", "flag": "🇮🇹" },\n  { "country": "South Korea", "flag": "🇰🇷" },\n  { "country": "Hungary", "flag": "🇭🇺" }\n]',
+          },
+        ],
+        opJSON1: json1.editOp(
+          [],
+          'text-unicode',
+          textUnicode.insert(
+            0,
+            'export default [\n  { "country": "Norway", "flag": "🇳🇴" },\n  { "country": "Germany", "flag": "🇩🇪" },\n  { "country": "USA", "flag": "🇺🇸" },\n  { "country": "China", "flag": "🇨🇳" },\n  { "country": "Sweden", "flag": "🇸🇪" },\n  { "country": "Netherlands", "flag": "🇳🇱" },\n  { "country": "Austria", "flag": "🇦🇹" },\n  { "country": "Switzerland", "flag": "🇨🇭" },\n  { "country": "ROC", "flag": "🏳️" },\n  { "country": "France", "flag": "🇫🇷" },\n  { "country": "Canada", "flag": "🇨🇦" },\n  { "country": "Japan", "flag": "🇯🇵" },\n  { "country": "Italy", "flag": "🇮🇹" },\n  { "country": "South Korea", "flag": "🇰🇷" },\n  { "country": "Hungary", "flag": "🇭🇺" }\n]',
+          ),
+        ),
+      });
+    });
   });
 
   describe('real world', () => {
